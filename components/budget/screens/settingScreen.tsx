@@ -13,7 +13,7 @@ const options = [
     title: 'Empezar de cero',
     description:
       'Crea tu propio lienzo en blanco. Define cada categoría y límite desde el principio. Perfecto si ya tienes un sistema claro.',
-    href: '/budget/new?method=scratch',
+    href: '/settingIncomes',
   },
 ];
 
