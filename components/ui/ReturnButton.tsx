@@ -1,10 +1,14 @@
-type ContinueButtonProps = {
+type returnButtonProps = {
   onClick?: () => void;
   children?: React.ReactNode;
   className?: string;
 };
 
-export function ContinueButton({ onClick, children = "Continuar →", className = "" }: ContinueButtonProps) {
+export function ReturnButton({
+  onClick,
+  children = "Volver",
+  className = "",
+}: returnButtonProps) {
   return (
     <button
       type="button"
