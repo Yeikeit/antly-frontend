@@ -44,7 +44,7 @@ export function IncomeScreen() {
             className="px-4 py-2 text-sm"
           />
           <ContinueButton
-            onClick={() => { /* acción de continuar */ }}
+            onClick={() => router.push("/budgetAllocation")}
             className="px-4 py-2 text-sm"
           />
       </div>

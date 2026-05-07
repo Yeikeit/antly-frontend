@@ -1,16 +1,19 @@
-"use client";
-
-import { useIncomeSteps } from "@/store/incomeStepContex";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 
-export default function StepsLayout({ children }: { children: React.ReactNode }) {
-  const { step } = useIncomeSteps();
-  const totalSteps = 3;
-
+export default function StepsLayout({
+  children,
+  step,
+  totalSteps,
+}: {
+  children: React.ReactNode;
+  step: number;
+  totalSteps: number;
+}) {
   return (
     <>
-      <ProgressBar step={step} totalSteps={totalSteps} />
-      {children}
+      <div className="mb-6">
+        <ProgressBar step={step} totalSteps={totalSteps} />
+      </div>      {children}
     </>
   );
 }
