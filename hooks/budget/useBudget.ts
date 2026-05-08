@@ -1,31 +1,28 @@
 "use client";
-import { useState } from "react";
+import { useBudgetFlow } from "@/store/BudgetFlowContext";
 
-export type Subcategory = { id: string; name: string; budget: string };
-export type Category = { id: string; name: string; budget: string; subcategories: Subcategory[] };
+export type { Subcategory, Category } from "@/store/BudgetFlowContext";
 
 export function useBudget() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { categories, setCategories, selectedCategoryId, setSelectedCategoryId } = useBudgetFlow();
 
+  const selectedId = selectedCategoryId;
   const selectedCategory = categories.find((cat) => cat.id === selectedId);
 
   function handleAddCategory() {
-    const newCategory: Category = {
+    const newCategory = {
       id: crypto.randomUUID(),
       name: "",
       budget: "",
       subcategories: [],
     };
-    setCategories([...categories, newCategory]);
-    setSelectedId(newCategory.id);
+    setCategories((prev) => [...prev, newCategory]);
+    setSelectedCategoryId(newCategory.id);
   }
 
   function handleCategoryChange(field: "name" | "budget", value: string) {
     setCategories((prev) =>
-      prev.map((cat) =>
-        cat.id === selectedId ? { ...cat, [field]: value } : cat
-      )
+      prev.map((cat) => (cat.id === selectedId ? { ...cat, [field]: value } : cat))
     );
   }
 
@@ -64,24 +61,27 @@ export function useBudget() {
     setCategories((prev) =>
       prev.map((cat) =>
         cat.id === selectedId
-          ? {
-              ...cat,
-              subcategories: cat.subcategories.filter((sub) => sub.id !== subId),
-            }
+          ? { ...cat, subcategories: cat.subcategories.filter((sub) => sub.id !== subId) }
           : cat
       )
     );
   }
 
+  function handleRemoveCategory(catId: string) {
+    setCategories((prev) => prev.filter((cat) => cat.id !== catId));
+    if (selectedId === catId) setSelectedCategoryId(null);
+  }
+
   return {
     categories,
     selectedId,
-    setSelectedId,
+    setSelectedId: setSelectedCategoryId,
     selectedCategory,
     handleAddCategory,
     handleCategoryChange,
     handleSubChange,
     handleAddSub,
     handleRemoveSub,
+    handleRemoveCategory,
   };
 }

@@ -1,17 +1,7 @@
 import { SubcategoryInputCard } from "./SubCategoryCard";
 
-type Subcategory = {
-  id: string;
-  name: string;
-  budget: string;
-};
-
-type Category = {
-  id: string;
-  name: string;
-  budget: string;
-  subcategories: Subcategory[];
-};
+type Subcategory = { id: string; name: string; budget: string };
+type Category = { id: string; name: string; budget: string; subcategories: Subcategory[] };
 
 type CategoryDetailCardProps = {
   category: Category;
@@ -28,36 +18,31 @@ export function CategoryDetailCard({
   onAddSub,
   onRemoveSub,
 }: CategoryDetailCardProps) {
-  const assigned = category.subcategories.reduce(
-    (acc, sub) => acc + Number(sub.budget || 0),
-    0
-  );
-  const remaining = Number(category.budget || 0) - assigned;
+  const totalAssigned = category.subcategories.reduce((acc, sub) => acc + (Number(sub.budget) || 0), 0);
 
   return (
-    <div className="space-y-4 rounded-xl bg-white p-6 shadow">
-      <div className="flex items-center justify-between gap-4">
-        <input
-          className="rounded border border-primary bg-white px-2 py-1 text-slate-900 outline-none placeholder:text-slate-400"
-          value={category.name}
-          onChange={(e) => onCategoryChange("name", e.target.value)}
-          placeholder="Nombre de la categorí­a"
-        />
-        <input
-          className="rounded border border-primary bg-white px-2 py-1 text-slate-900 outline-none placeholder:text-slate-400"
-          type="number"
-          value={category.budget}
-          onChange={(e) => onCategoryChange("budget", e.target.value)}
-          placeholder="Presupuesto"
-        />
+    <div className="flex-1 rounded-xl bg-white p-6 shadow-sm border border-slate-100">
+      {/* Header */}
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <input
+            className="text-lg font-semibold text-slate-900 outline-none border-b-2 border-transparent focus:border-[#0E7C8B] bg-transparent pb-0.5 w-full max-w-xs"
+            value={category.name}
+            onChange={(e) => onCategoryChange("name", e.target.value)}
+            placeholder="Nombre de la categoría"
+          />
+          <p className="mt-1 text-sm text-slate-500">Asigna presupuestos específicos</p>
+        </div>
+        <div className="text-right shrink-0">
+          <p className="text-xs text-slate-400">Total Asignado</p>
+          <p className="text-lg font-bold text-slate-900">
+            ${totalAssigned.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+          </p>
+        </div>
       </div>
-      <div className="flex justify-between text-sm text-slate-600">
-        <span>Asignado: <b>${assigned}</b></span>
-        <span className={remaining < 0 ? "text-red-600" : "text-primary"}>
-          Restante: <b>${remaining}</b>
-        </span>
-      </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+      {/* Subcategory grid */}
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {category.subcategories.map((sub) => (
           <SubcategoryInputCard
             key={sub.id}
@@ -66,12 +51,13 @@ export function CategoryDetailCard({
             onRemove={() => onRemoveSub(sub.id)}
           />
         ))}
+
         <button
           type="button"
-          className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary p-4 text-primary transition hover:bg-primary/10"
           onClick={onAddSub}
+          className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 p-4 text-sm font-medium text-slate-400 transition hover:border-[#0E7C8B] hover:text-[#0E7C8B]"
         >
-          + Agregar Subcategorí­a
+          <span className="text-lg leading-none">+</span> Agregar Subcategoría
         </button>
       </div>
     </div>

@@ -1,11 +1,12 @@
-
-export function IncomeTotal({ total, children }: { total: number, children?: React.ReactNode }) {
+export function IncomeTotal({ total }: { total: number }) {
   return (
-    <div className="mt-4 flex items-center justify-between rounded-lg bg-slate-100 p-4">
-      <span className="font-medium text-slate-600">Ingreso Total Estimado</span>
-      <span className="text-xl font-bold text-slate-900">${total.toLocaleString()}</span>
-       {children}
+    <div className="mt-4 flex items-end justify-between">
+      <div>
+        <p className="text-xs text-slate-500">Ingreso Total Estimado</p>
+        <p className="text-2xl font-bold text-[#0E7C8B]">
+          ${total.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+        </p>
+      </div>
     </div>
   );
-  
 }

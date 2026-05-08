@@ -1,8 +1,4 @@
-type Subcategory = {
-  id: string;
-  name: string;
-  budget: string;
-};
+type Subcategory = { id: string; name: string; budget: string };
 
 type SubcategoryInputCardProps = {
   sub: Subcategory;
@@ -12,28 +8,33 @@ type SubcategoryInputCardProps = {
 
 export function SubcategoryInputCard({ sub, onChange, onRemove }: SubcategoryInputCardProps) {
   return (
-    <div className="bg-slate-50 rounded-lg p-4 flex flex-col gap-2">
-      <input
-        className="border rounded px-2 py-1"
-        value={sub.name}
-        onChange={(e) => onChange("name", e.target.value)}
-        placeholder="Nombre de subcategoría"
-      />
-      <input
-        className="border rounded px-2 py-1"
-        type="number"
-        value={sub.budget}
-        onChange={(e) => onChange("budget", e.target.value)}
-        placeholder="Presupuesto"
-      />
+    <div className="relative rounded-xl border border-slate-200 bg-white p-4">
       <button
         type="button"
-        className="text-black font-bold px-2 self-end"
         onClick={onRemove}
-        title="Eliminar"
+        className="absolute right-3 top-3 text-slate-300 hover:text-slate-500 text-base leading-none"
+        aria-label="Eliminar subcategoría"
       >
         ×
       </button>
+      <label className="mb-1 block text-xs font-medium text-slate-500">Nombre</label>
+      <input
+        className="mb-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 outline-none focus:border-[#0E7C8B] focus:ring-1 focus:ring-[#0E7C8B]"
+        value={sub.name}
+        onChange={(e) => onChange("name", e.target.value)}
+        placeholder="ej: Renta / Hipoteca"
+      />
+      <label className="mb-1 block text-xs font-medium text-slate-500">Monto</label>
+      <div className="relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">$</span>
+        <input
+          className="w-full rounded-lg border border-slate-200 py-2 pl-7 pr-3 text-sm text-slate-800 outline-none focus:border-[#0E7C8B] focus:ring-1 focus:ring-[#0E7C8B]"
+          type="number"
+          value={sub.budget}
+          onChange={(e) => onChange("budget", e.target.value)}
+          placeholder="0.00"
+        />
+      </div>
     </div>
   );
 }

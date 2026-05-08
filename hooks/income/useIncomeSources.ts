@@ -1,19 +1,20 @@
-import { useState } from 'react';
+import { useState } from "react";
+import { useBudgetFlow, type IncomeSource } from "@/store/BudgetFlowContext";
 
 export function useIncomeSources() {
-  const [sources, setSources] = useState<{ name: string; amount: number }[]>([]);
+  const { incomeSources, setIncomeSources } = useBudgetFlow();
   const [showForm, setShowForm] = useState(false);
 
-  function addSource(source: { name: string; amount: number }) {
-    setSources((prev) => [...prev, source]);
+  function addSource(source: IncomeSource) {
+    setIncomeSources((prev) => [...prev, source]);
     setShowForm(false);
   }
 
   function removeSource(index: number) {
-    setSources((prev) => prev.filter((_, i) => i !== index));
+    setIncomeSources((prev) => prev.filter((_, i) => i !== index));
   }
 
-  const total = sources.reduce((acc, curr) => acc + curr.amount, 0);
+  const total = incomeSources.reduce((acc, curr) => acc + curr.amount, 0);
 
-  return { sources, addSource, removeSource, total, showForm, setShowForm };
+  return { sources: incomeSources, addSource, removeSource, total, showForm, setShowForm };
 }
