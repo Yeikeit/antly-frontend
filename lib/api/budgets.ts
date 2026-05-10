@@ -1,72 +1,75 @@
 import { apiRequest } from "./client";
 import type { IncomeSource, Category } from "@/store/BudgetFlowContext";
 
-interface CreatedBudget { id: string }
-interface CreatedIncomeSource { id: string }
-interface CreatedCategory { id: string }
+
+export interface ActiveBudget {
+  id: string;
+  year: number;
+  month: number;
+  status: string;
+  totalIncomeAmount: number;
+  totalAllocatedAmount: number;
+}
+
+interface BudgetWizardResponse { id: string }
+
+
+export async function getActiveBudget(): Promise<ActiveBudget | null> {
+  try {
+    return await apiRequest<ActiveBudget>("/budgets/current");
+  } catch {
+    return null;
+  }
+}
+
+export async function getDefaultCategories(): Promise<Category[]> {
+  const data = await apiRequest<Array<{
+    id: string;
+    name: string;
+    sourceType: string;
+    subcategories: Array<{ id: string; name: string }>;
+  }>>("/categories");
+
+  return data
+    .filter((c) => c.sourceType === "DEFAULT")
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      budget: "0",
+      subcategories: c.subcategories.map((s) => ({
+        id: s.id,
+        name: s.name,
+        budget: "0",
+      })),
+    }));
+}
 
 export async function createBudgetWizard(
   incomeSources: IncomeSource[],
-  categories: Category[]
-): Promise<void> {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-
-  // 1. Create the budget
-  const budget = await apiRequest<CreatedBudget>("/budgets", {
+  categories: Category[],
+  month: number,
+  year: number
+): Promise<BudgetWizardResponse> {
+  return apiRequest<BudgetWizardResponse>("/budgets/wizard", {
     method: "POST",
-    body: JSON.stringify({ year, month }),
+    body: JSON.stringify({
+      year,
+      month,
+      incomeSources: incomeSources.map((s) => ({
+        name: s.name,
+        amount: s.amount,
+      })),
+      categories: categories
+        .filter((c) => c.name.trim())
+        .map((c) => ({
+          name: c.name,
+          subcategories: c.subcategories
+            .filter((s) => s.name.trim())
+            .map((s) => ({
+              name: s.name,
+              budget: Number(s.budget),
+            })),
+        })),
+    }),
   });
-
-  // 2. Create income sources + incomes in parallel
-  await Promise.all(
-    incomeSources.map(async (src) => {
-      const source = await apiRequest<CreatedIncomeSource>("/income-sources", {
-        method: "POST",
-        body: JSON.stringify({ name: src.name }),
-      });
-      await apiRequest("/incomes", {
-        method: "POST",
-        body: JSON.stringify({
-          budgetId: budget.id,
-          incomeSourceId: source.id,
-          amount: src.amount,
-          receivedDate: now.toISOString().split("T")[0],
-        }),
-      });
-    })
-  );
-
-  // 3. Create categories, subcategories, and allocations sequentially per parent
-  for (const cat of categories) {
-    if (!cat.name.trim()) continue;
-
-    const parent = await apiRequest<CreatedCategory>("/categories", {
-      method: "POST",
-      body: JSON.stringify({ name: cat.name, type: "EXPENSE" }),
-    });
-
-    for (const sub of cat.subcategories) {
-      if (!sub.name.trim()) continue;
-
-      const subCat = await apiRequest<CreatedCategory>(
-        `/categories/${parent.id}/subcategories`,
-        {
-          method: "POST",
-          body: JSON.stringify({ name: sub.name }),
-        }
-      );
-
-      if (sub.budget && Number(sub.budget) > 0) {
-        await apiRequest(`/budgets/${budget.id}/allocations`, {
-          method: "POST",
-          body: JSON.stringify({
-            categoryId: subCat.id,
-            allocatedAmount: Number(sub.budget),
-          }),
-        });
-      }
-    }
-  }
 }

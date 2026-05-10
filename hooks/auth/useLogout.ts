@@ -26,7 +26,7 @@ export function useLogout() {
             }
 
             clearUser();
-            router.push('/login');
+            router.push('/');
         } finally {
             setIsSubmitting(false);
         }

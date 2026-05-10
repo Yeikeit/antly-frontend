@@ -1,5 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
+
+const MONTHS = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
 import { useRouter } from "next/navigation";
 import { useBudgetFlow } from "@/store/BudgetFlowContext";
 import { createBudgetWizard } from "@/lib/api/budgets";
@@ -13,7 +18,7 @@ const ICON_COLORS = [
 
 export default function BudgetConfirmationScreen() {
   const router = useRouter();
-  const { step, setStep, incomeSources, categories } = useBudgetFlow();
+  const { step, setStep, month, year, incomeSources, categories } = useBudgetFlow();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,7 +38,7 @@ export default function BudgetConfirmationScreen() {
     setLoading(true);
     setError(null);
     try {
-      await createBudgetWizard(incomeSources, categories);
+      await createBudgetWizard(incomeSources, categories, month, year);
       router.push("/dashboard");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Error al crear el presupuesto");
@@ -47,7 +52,12 @@ export default function BudgetConfirmationScreen() {
           <StepsLayout step={step} totalSteps={3} stepName="Revisión">
 
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-slate-900">Resumen del presupuesto</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-slate-900">Resumen del presupuesto</h2>
+                <span className="text-sm font-semibold text-[#0E7C8B] bg-[#0E7C8B]/10 px-3 py-1 rounded-full">
+                  {MONTHS[month - 1]} {year}
+                </span>
+              </div>
               <p className="mt-1 text-sm text-slate-500">
                 Revisa que todo esté correcto antes de crear tu presupuesto.
               </p>
