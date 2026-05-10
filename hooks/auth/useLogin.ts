@@ -23,7 +23,7 @@ export function useLogin() {
             persistSession(response);
             setUser(response.user);
 
-            router.push('/settingBudget');
+            router.push('/dashboard');
         } catch (err) {
             setError('No se pudo iniciar sesión');
             throw err;
