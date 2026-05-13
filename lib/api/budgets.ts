@@ -73,3 +73,32 @@ export async function createBudgetWizard(
     }),
   });
 }
+
+
+export interface AllocationSummary {
+  categoryId: string;
+  categoryName: string;
+  parentId: string | null;
+  parentName: string | null;
+  type: string;
+  allocated: number;
+  spent: number;
+  remaining: number;
+  executionPct: number;
+}
+
+export interface BudgetSummary {
+  budgetId: string;
+  year: number;
+  month: number;
+  status: string;
+  totalIncomeAmount: number;
+  totalAllocatedAmount: number;
+  totalSpent: number;
+  totalRemaining: number;
+  allocations: AllocationSummary[];
+}
+
+export async function getBudgetSummary(budgetId: string): Promise<BudgetSummary> {
+  return apiRequest<BudgetSummary>(`/budgets/${budgetId}/summary`);
+}

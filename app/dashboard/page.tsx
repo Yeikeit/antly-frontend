@@ -6,6 +6,9 @@ import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { getActiveBudget, type ActiveBudget } from '@/lib/api/budgets';
 import Link from 'next/link';
+import { useBudgetSummary } from "@/hooks/budget/useBudgetSummary";
+import { BudgetChart } from "@/components/budget/BudgetChart";
+
 
 const MONTHS = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -16,6 +19,8 @@ export default function DashboardPage() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [budget, setBudget] = useState<ActiveBudget | null | undefined>(undefined); // undefined = loading
+  const { summary, loading: loadingSummary, error } = useBudgetSummary(budget?.id);
+
 
   useEffect(() => {
     getActiveBudget().then((b) => {
@@ -75,6 +80,14 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
+
+      {loadingSummary ? (
+        <div>Cargando gráfico...</div>
+      ) : error ? (
+        <div>Error al cargar el gráfico</div>
+      ) : summary ? (
+        <BudgetChart allocations={summary.allocations} />
+      ) : null}
 
         {/* Barra de ejecución */}
         <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm mb-8">
