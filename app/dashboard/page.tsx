@@ -8,6 +8,7 @@ import { getActiveBudget, type ActiveBudget } from '@/lib/api/budgets';
 import Link from 'next/link';
 import { useBudgetSummary } from "@/hooks/budget/useBudgetSummary";
 import { BudgetChart } from "@/components/budget/BudgetChart";
+import RecentTransactions from '@/components/transaction/RecentTransactions';
 
 
 const MONTHS = [
@@ -81,14 +82,21 @@ export default function DashboardPage() {
           ))}
         </div>
 
-      {loadingSummary ? (
-        <div>Cargando gráfico...</div>
-      ) : error ? (
-        <div>Error al cargar el gráfico</div>
-      ) : summary ? (
-        <BudgetChart allocations={summary.allocations} />
-      ) : null}
-
+          <div className="flex flex-col md:flex-row gap-6">
+        <div className="flex-1">
+          {loadingSummary ? (
+            <div>Cargando gráfico...</div>
+          ) : error ? (
+            <div>Error al cargar el gráfico</div>
+          ) : summary ? (
+            <BudgetChart allocations={summary.allocations} />
+          ) : null}
+        </div>
+        <div className="w-full md:w-80">
+          <RecentTransactions />
+        </div>
+      </div>
+      
         {/* Barra de ejecución */}
         <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm mb-8">
           <div className="flex justify-between items-center mb-3">

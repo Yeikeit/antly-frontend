@@ -22,7 +22,6 @@ export default function SideBar({ open = true, onClose }: SideBarProps) {
           <span className="text-2xl text-[#0E7C8B]"><FaRegChartBar /></span>
           <div>
             <div className="font-bold text-lg text-[#0E7C8B]">Antly</div>
-            <div className="text-xs text-slate-400">Financial Serenity</div>
           </div>
         </div>
         {/* Navegación */}
