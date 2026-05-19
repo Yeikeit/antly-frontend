@@ -17,7 +17,7 @@ const MONTHS = [
 ];
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const router = useRouter();
   const [budget, setBudget] = useState<ActiveBudget | null | undefined>(undefined); // undefined = loading
   const { summary, loading: loadingSummary, error } = useBudgetSummary(budget?.id);
@@ -123,7 +123,7 @@ export default function DashboardPage() {
             Ver detalle del presupuesto
           </Link>
           <Link
-            href="/transactions"
+            href="/transactions/new"
             className="flex-1 text-center border border-slate-200 text-slate-600 font-medium py-3 rounded-xl hover:bg-slate-50 transition-colors text-sm"
           >
             Registrar transacción
