@@ -42,7 +42,6 @@ export default function BudgetPage() {
   const remaining = Number(summary.totalRemaining);
   const spentPct = allocated > 0 ? Math.min(Math.round((spent / allocated) * 100), 100) : 0;
 
-  // Agrupar allocations: solo las de tipo padre (parentId === null)
   const parentCategories = summary.allocations.filter((a) => a.parentId === null);
   const subByParent = summary.allocations.reduce<Record<string, typeof summary.allocations>>(
     (acc, a) => {
@@ -54,6 +53,17 @@ export default function BudgetPage() {
     },
     {}
   );
+
+  const expenseCategories = parentCategories.filter((a) => a.type !== "SAVING");
+  const savingCategories = parentCategories.filter((a) => a.type === "SAVING");
+
+  const totalSaved = savingCategories.reduce((sum, cat) => {
+    return sum + (subByParent[cat.categoryId] ?? []).reduce((s, sub) => s + sub.spent, 0);
+  }, 0);
+  const totalSavingAllocated = savingCategories.reduce((sum, cat) => {
+    return sum + (subByParent[cat.categoryId] ?? []).reduce((s, sub) => s + sub.allocated, 0);
+  }, 0);
+  const savingRate = income > 0 ? Math.round((totalSaved / income) * 100) : 0;
 
   return (
     <div className="max-w-5xl mx-auto px-2 py-8 space-y-8">
@@ -112,19 +122,53 @@ export default function BudgetPage() {
       {error ? (
         <p className="text-sm text-red-500">{error}</p>
       ) : (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-slate-900">Categorías</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {parentCategories.map((cat) => (
-              <CategoryCard
-                key={cat.categoryId}
-                category={cat}
-                subcategories={subByParent[cat.categoryId] ?? []}
-              />
-            ))}
-          </div>
+        <div className="space-y-8">
+          {/* Gastos */}
+          {expenseCategories.length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 mb-4">Gastos</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {expenseCategories.map((cat) => (
+                  <CategoryCard
+                    key={cat.categoryId}
+                    category={cat}
+                    subcategories={subByParent[cat.categoryId] ?? []}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Ahorros */}
+          {savingCategories.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-slate-900">Ahorros</h2>
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="text-slate-500">
+                    Ahorrado:{" "}
+                    <span className="font-semibold text-emerald-600">
+                      ${totalSaved.toLocaleString("es-CL")}
+                    </span>
+                    {" "}/ ${totalSavingAllocated.toLocaleString("es-CL")}
+                  </span>
+                  <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-xs font-semibold px-2.5 py-1 rounded-full">
+                    {savingRate}% del ingreso
+                  </span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {savingCategories.map((cat) => (
+                  <CategoryCard
+                    key={cat.categoryId}
+                    category={cat}
+                    subcategories={subByParent[cat.categoryId] ?? []}
+                    isSaving
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
