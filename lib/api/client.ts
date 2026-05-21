@@ -74,7 +74,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   if (res.status === 401) {
     const newToken = await tryRefresh();
     if (newToken) {
-      res = await request<T>(path, options, newToken);
+      res = await request(path, options, newToken);
     }
   }
 

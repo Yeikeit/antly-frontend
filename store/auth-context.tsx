@@ -13,7 +13,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 // Minutos de inactividad antes de cerrar sesión automáticamente
 const INACTIVITY_MINUTES = Number(process.env.NEXT_PUBLIC_INACTIVITY_MINUTES ?? 30);
 const INACTIVITY_MS = INACTIVITY_MINUTES * 60 * 1000;
-console.log('[Auth] INACTIVITY_MINUTES:', INACTIVITY_MINUTES, '| MS:', INACTIVITY_MS);
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -150,11 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
     if (!getStoredUser()) return;
-    console.log('[Auth] Timer reiniciado, expira en', INACTIVITY_MINUTES, 'min');
-    inactivityTimer.current = setTimeout(() => {
-      console.log('[Auth] Timer disparado → expireSession');
-      expireSession(true);
-    }, INACTIVITY_MS);
+    inactivityTimer.current = setTimeout(() => expireSession(true), INACTIVITY_MS);
   }, [expireSession]);
 
   useEffect(() => {
