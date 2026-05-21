@@ -21,6 +21,7 @@ export default function BudgetScreen() {
     selectedCategory,
     handleAddCategory,
     handleCategoryChange,
+    handleTypeChange,
     handleSubChange,
     handleAddSub,
     handleRemoveSub,
@@ -52,6 +53,7 @@ export default function BudgetScreen() {
                 <CategoryDetailCard
                   category={selectedCategory}
                   onCategoryChange={handleCategoryChange}
+                  onTypeChange={handleTypeChange}
                   onSubChange={handleSubChange}
                   onAddSub={handleAddSub}
                   onRemoveSub={handleRemoveSub}

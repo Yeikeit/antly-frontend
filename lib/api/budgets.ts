@@ -26,16 +26,18 @@ export async function getDefaultCategories(): Promise<Category[]> {
   const data = await apiRequest<Array<{
     id: string;
     name: string;
+    type: string;
     sourceType: string;
     subcategories: Array<{ id: string; name: string }>;
   }>>("/categories");
 
   return data
-    .filter((c) => c.sourceType === "DEFAULT")
+    .filter((c) => c.sourceType === "DEFAULT" && (c.type === "EXPENSE" || c.type === "SAVING"))
     .map((c) => ({
       id: c.id,
       name: c.name,
       budget: "0",
+      type: (c.type === "SAVING" ? "SAVING" : "EXPENSE") as "EXPENSE" | "SAVING",
       subcategories: c.subcategories.map((s) => ({
         id: s.id,
         name: s.name,
@@ -63,6 +65,7 @@ export async function createBudgetWizard(
         .filter((c) => c.name.trim())
         .map((c) => ({
           name: c.name,
+          type: c.type,
           subcategories: c.subcategories
             .filter((s) => s.name.trim())
             .map((s) => ({

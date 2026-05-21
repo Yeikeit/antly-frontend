@@ -1,7 +1,7 @@
 "use client";
 import { useBudgetFlow } from "@/store/BudgetFlowContext";
 
-export type { Subcategory, Category } from "@/store/BudgetFlowContext";
+export type { Subcategory, Category, CategoryType } from "@/store/BudgetFlowContext";
 
 export function useBudget() {
   const { categories, setCategories, selectedCategoryId, setSelectedCategoryId } = useBudgetFlow();
@@ -14,6 +14,7 @@ export function useBudget() {
       id: crypto.randomUUID(),
       name: "",
       budget: "",
+      type: "EXPENSE" as const,
       subcategories: [],
     };
     setCategories((prev) => [...prev, newCategory]);
@@ -23,6 +24,12 @@ export function useBudget() {
   function handleCategoryChange(field: "name" | "budget", value: string) {
     setCategories((prev) =>
       prev.map((cat) => (cat.id === selectedId ? { ...cat, [field]: value } : cat))
+    );
+  }
+
+  function handleTypeChange(type: "EXPENSE" | "SAVING") {
+    setCategories((prev) =>
+      prev.map((cat) => (cat.id === selectedId ? { ...cat, type } : cat))
     );
   }
 
@@ -79,6 +86,7 @@ export function useBudget() {
     selectedCategory,
     handleAddCategory,
     handleCategoryChange,
+    handleTypeChange,
     handleSubChange,
     handleAddSub,
     handleRemoveSub,

@@ -1,9 +1,10 @@
 "use client";
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
+export type CategoryType = "EXPENSE" | "SAVING";
 export type IncomeSource = { name: string; amount: number };
 export type Subcategory = { id: string; name: string; budget: string };
-export type Category = { id: string; name: string; budget: string; subcategories: Subcategory[] };
+export type Category = { id: string; name: string; budget: string; type: CategoryType; subcategories: Subcategory[] };
 
 type BudgetFlowState = {
   step: number;

@@ -3,6 +3,7 @@ import type { AllocationSummary } from "@/lib/api/budgets";
 type Props = {
   category: AllocationSummary;
   subcategories: AllocationSummary[];
+  isSaving?: boolean;
 };
 
 function spentColor(pct: number) {
@@ -16,28 +17,37 @@ function amountColor(remaining: number) {
   return "text-slate-700";
 }
 
-export default function CategoryCard({ category, subcategories }: Props) {
+export default function CategoryCard({ category, subcategories, isSaving = false }: Props) {
   const pct = category.allocated > 0
     ? Math.min(Math.round((category.spent / category.allocated) * 100), 100)
     : 0;
 
   const overBudget = category.spent > category.allocated;
+  const accentColor = isSaving ? "bg-emerald-500" : spentColor(pct);
+  const borderColor = isSaving ? "border-emerald-100" : "border-slate-100";
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col gap-4">
+    <div className={`bg-white rounded-2xl border shadow-sm p-5 flex flex-col gap-4 ${borderColor}`}>
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h3 className="font-bold text-slate-800 text-base">{category.categoryName}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold text-slate-800 text-base">{category.categoryName}</h3>
+            {isSaving && (
+              <span className="text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-full">
+                Ahorro
+              </span>
+            )}
+          </div>
           <p className="text-xs text-slate-400 mt-0.5">
             ${category.remaining.toLocaleString("es-CL")} restante
           </p>
-          {overBudget && (
+          {overBudget && !isSaving && (
             <span className="text-xs font-semibold text-red-500 mt-0.5 block">Sobre presupuesto</span>
           )}
         </div>
         <div className="text-right">
-          <span className={`text-base font-bold ${overBudget ? "text-red-500" : "text-slate-800"}`}>
+          <span className={`text-base font-bold ${isSaving ? "text-emerald-600" : overBudget ? "text-red-500" : "text-slate-800"}`}>
             ${category.spent.toLocaleString("es-CL")}
           </span>
           <span className="text-xs text-slate-400">
@@ -49,7 +59,7 @@ export default function CategoryCard({ category, subcategories }: Props) {
       {/* Barra de categoría */}
       <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${spentColor(pct)}`}
+          className={`h-full rounded-full transition-all ${accentColor}`}
           style={{ width: `${pct}%` }}
         />
       </div>

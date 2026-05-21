@@ -1,11 +1,12 @@
 import { SubcategoryInputCard } from "./SubCategoryCard";
 
 type Subcategory = { id: string; name: string; budget: string };
-type Category = { id: string; name: string; budget: string; subcategories: Subcategory[] };
+type Category = { id: string; name: string; budget: string; type: "EXPENSE" | "SAVING"; subcategories: Subcategory[] };
 
 type CategoryDetailCardProps = {
   category: Category;
   onCategoryChange: (field: "name" | "budget", value: string) => void;
+  onTypeChange: (type: "EXPENSE" | "SAVING") => void;
   onSubChange: (subId: string, field: "name" | "budget", value: string) => void;
   onAddSub: () => void;
   onRemoveSub: (subId: string) => void;
@@ -14,6 +15,7 @@ type CategoryDetailCardProps = {
 export function CategoryDetailCard({
   category,
   onCategoryChange,
+  onTypeChange,
   onSubChange,
   onAddSub,
   onRemoveSub,
@@ -39,6 +41,33 @@ export function CategoryDetailCard({
             ${totalAssigned.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
           </p>
         </div>
+      </div>
+
+      {/* Tipo: pill selector */}
+      <div className="mb-5 flex items-center gap-2">
+        <span className="text-xs font-medium text-slate-500">Tipo:</span>
+        <button
+          type="button"
+          onClick={() => onTypeChange("EXPENSE")}
+          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+            category.type === "EXPENSE"
+              ? "bg-[#0E7C8B] text-white border-[#0E7C8B]"
+              : "bg-white text-slate-500 border-slate-200 hover:border-[#0E7C8B] hover:text-[#0E7C8B]"
+          }`}
+        >
+          Gasto
+        </button>
+        <button
+          type="button"
+          onClick={() => onTypeChange("SAVING")}
+          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+            category.type === "SAVING"
+              ? "bg-emerald-500 text-white border-emerald-500"
+              : "bg-white text-slate-500 border-slate-200 hover:border-emerald-500 hover:text-emerald-500"
+          }`}
+        >
+          Ahorro
+        </button>
       </div>
 
       {/* Subcategory grid */}
