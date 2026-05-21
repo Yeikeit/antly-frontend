@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaRegChartBar, FaWallet, FaExchangeAlt, FaCog, FaPlus, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaRegChartBar, FaWallet, FaExchangeAlt, FaCog, FaPlus, FaChevronLeft, FaChevronRight, FaChartLine } from "react-icons/fa";
 import { IconType } from "react-icons";
 
 export type NavItem = {
@@ -15,6 +15,7 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: FaRegChartBar },
   { label: "Presupuesto", href: "/budget", icon: FaWallet },
   { label: "Transacciones", href: "/transactions", icon: FaExchangeAlt },
+  { label: "Estadísticas", href: "/statistics", icon: FaChartLine },
   { label: "Configuración", href: "/settings", icon: FaCog },
 ];
 
