@@ -42,17 +42,25 @@ export default function BudgetPage() {
   const remaining = Number(summary.totalRemaining);
   const spentPct = allocated > 0 ? Math.min(Math.round((spent / allocated) * 100), 100) : 0;
 
-  const parentCategories = summary.allocations.filter((a) => a.parentId === null);
+  // La API solo devuelve subcategorías; reconstruimos los padres agrupando por parentId
   const subByParent = summary.allocations.reduce<Record<string, typeof summary.allocations>>(
     (acc, a) => {
-      if (a.parentId) {
-        acc[a.parentId] = acc[a.parentId] ?? [];
-        acc[a.parentId].push(a);
-      }
+      const key = a.parentId ?? a.categoryId;
+      acc[key] = acc[key] ?? [];
+      if (a.parentId) acc[key].push(a);
       return acc;
     },
     {}
   );
+
+  const parentCategories = Object.entries(
+    summary.allocations.reduce<Record<string, { categoryId: string; categoryName: string; type: string }>>((acc, a) => {
+      const id = a.parentId ?? a.categoryId;
+      const name = a.parentName ?? a.categoryName;
+      if (!acc[id]) acc[id] = { categoryId: id, categoryName: name, type: a.type };
+      return acc;
+    }, {})
+  ).map(([, v]) => v);
 
   const expenseCategories = parentCategories.filter((a) => a.type !== "SAVING");
   const savingCategories = parentCategories.filter((a) => a.type === "SAVING");
@@ -70,7 +78,6 @@ export default function BudgetPage() {
       {/* Encabezado */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs text-slate-400 uppercase tracking-wide font-medium">Presupuesto activo</p>
           <h1 className="text-2xl font-bold text-slate-900">
             {MONTHS[budget.month - 1]} {budget.year}
           </h1>
@@ -123,10 +130,14 @@ export default function BudgetPage() {
         <p className="text-sm text-red-500">{error}</p>
       ) : (
         <div className="space-y-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-slate-900">Categorías</h2>
+          </div>
+
           {/* Gastos */}
           {expenseCategories.length > 0 && (
             <div>
-              <h2 className="text-xl font-bold text-slate-900 mb-4">Gastos</h2>
+              <h3 className="text-base font-semibold text-slate-600 mb-3">Gastos</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {expenseCategories.map((cat) => (
                   <CategoryCard
@@ -142,8 +153,8 @@ export default function BudgetPage() {
           {/* Ahorros */}
           {savingCategories.length > 0 && (
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-slate-900">Ahorros</h2>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-semibold text-slate-600">Ahorros</h3>
                 <div className="flex items-center gap-3 text-sm">
                   <span className="text-slate-500">
                     Ahorrado:{" "}
