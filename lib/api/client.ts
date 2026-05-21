@@ -1,3 +1,5 @@
+import { emitSessionExpired } from '@/lib/auth/session-events';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 
 export class ApiError extends Error {
@@ -16,7 +18,7 @@ function getAccessToken(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-export function setAccessTokenCookie(token: string, maxAgeSeconds = 900) {
+export function setAccessTokenCookie(token: string, maxAgeSeconds = 60) {
   if (typeof document === 'undefined') return;
   document.cookie = `access_token=${encodeURIComponent(token)};path=/;max-age=${maxAgeSeconds};SameSite=Lax`;
 }
@@ -29,7 +31,10 @@ export function clearAccessTokenCookie() {
 async function tryRefresh(): Promise<string | null> {
   if (typeof window === 'undefined') return null;
   const refreshToken = localStorage.getItem('auth_refresh');
-  if (!refreshToken) return null;
+  if (!refreshToken) {
+    emitSessionExpired();
+    return null;
+  }
 
   try {
     const res = await fetch(`${API_URL}/auth/refresh`, {
@@ -37,16 +42,23 @@ async function tryRefresh(): Promise<string | null> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      emitSessionExpired();
+      return null;
+    }
     const data = await res.json();
     setAccessTokenCookie(data.accessToken);
+    // Si el backend rota el refresh token, actualizarlo (#10)
+    if (data.refreshToken) {
+      localStorage.setItem('auth_refresh', data.refreshToken);
+    }
     return data.accessToken as string;
   } catch {
     return null;
   }
 }
 
-async function request<T>(path: string, options: RequestInit, token: string | null): Promise<Response> {
+async function request(path: string, options: RequestInit, token: string | null): Promise<Response> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
@@ -57,7 +69,7 @@ async function request<T>(path: string, options: RequestInit, token: string | nu
 
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
   let token = getAccessToken();
-  let res = await request<T>(path, options, token);
+  let res = await request(path, options, token);
 
   if (res.status === 401) {
     const newToken = await tryRefresh();

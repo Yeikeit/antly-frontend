@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { AuthProvider } from '@/store/auth-context';
+import { SessionExpiredToast } from '@/components/ui/SessionExpiredToast';
 import './globals.css';
 
 const geistSans = Geist({
@@ -30,10 +31,9 @@ export default function RootLayout({
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col">
         <AuthProvider>
-          
-            {children}
-          
-          </AuthProvider>
+          {children}
+          <SessionExpiredToast />
+        </AuthProvider>
       </body>
     </html>
   );
