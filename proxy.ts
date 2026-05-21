@@ -7,12 +7,14 @@ const AUTH_ROUTES = ['/login', '/register'];
 // Rutas que requieren sesión activa
 const PROTECTED_PREFIXES = [
   '/dashboard',
+  '/budget',
   '/settingBudget',
   '/settingIncomes',
   '/budgetAllocation',
   '/budgetConfirmation',
   '/categories',
   '/transactions',
+  '/settings',
 ];
 
 export function proxy(request: NextRequest) {
@@ -27,9 +29,11 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // Usuario sin sesión visitando ruta protegida → landing
+  // Usuario sin sesión visitando ruta protegida → landing con ?next= para redirect post-login
   if (!hasToken && isProtected) {
-    return NextResponse.redirect(new URL('/', request.url));
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('next', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();

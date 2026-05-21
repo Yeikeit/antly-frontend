@@ -75,7 +75,6 @@ export default function BudgetPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-2 py-8 space-y-8">
-      {/* Encabezado */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
@@ -95,7 +94,6 @@ export default function BudgetPage() {
         </div>
       </div>
 
-      {/* Métricas principales */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <BudgetMetricCard label="Ingresos" amount={income} color="slate" />
         <BudgetMetricCard label="Asignado" amount={allocated} color="teal" />
@@ -108,7 +106,6 @@ export default function BudgetPage() {
         />
       </div>
 
-      {/* Barra de ejecución global */}
       <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
         <div className="flex justify-between items-center mb-2">
           <p className="text-sm font-semibold text-slate-700">Ejecución del presupuesto</p>
@@ -125,7 +122,6 @@ export default function BudgetPage() {
         </p>
       </div>
 
-      {/* Categorías */}
       {error ? (
         <p className="text-sm text-red-500">{error}</p>
       ) : (
@@ -134,7 +130,6 @@ export default function BudgetPage() {
             <h2 className="text-xl font-bold text-slate-900">Categorías</h2>
           </div>
 
-          {/* Gastos */}
           {expenseCategories.length > 0 && (
             <div>
               <h3 className="text-base font-semibold text-slate-600 mb-3">Gastos</h3>
@@ -150,7 +145,6 @@ export default function BudgetPage() {
             </div>
           )}
 
-          {/* Ahorros */}
           {savingCategories.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3">

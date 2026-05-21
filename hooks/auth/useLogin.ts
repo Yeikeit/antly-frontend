@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import * as authApi from '@/lib/api/auth';
 import { persistSession } from '@/lib/auth/session';
 import { useAuthContext } from '@/store/auth-context';
@@ -12,6 +12,7 @@ export function useLogin() {
 
     const { setUser } = useAuthContext();
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const login = useCallback(async (email: string, password: string) => {
         try {
@@ -23,14 +24,15 @@ export function useLogin() {
             persistSession(response);
             setUser(response.user);
 
-            router.push('/dashboard');
+            const next = searchParams.get('next');
+            router.push(next ?? '/dashboard');
         } catch (err) {
             setError('No se pudo iniciar sesión');
             throw err;
         } finally {
             setIsSubmitting(false);
         }
-    }, [router, setUser]);
+    }, [router, searchParams, setUser]);
 
     return {
         login,
