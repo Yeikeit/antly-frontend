@@ -105,3 +105,16 @@ export interface BudgetSummary {
 export async function getBudgetSummary(budgetId: string): Promise<BudgetSummary> {
   return apiRequest<BudgetSummary>(`/budgets/${budgetId}/summary`);
 }
+
+export interface BudgetListItem {
+  id: string;
+  year: number;
+  month: number;
+  status: string;
+  totalIncomeAmount: number;
+  totalAllocatedAmount: number;
+}
+
+export async function getAllBudgets(): Promise<BudgetListItem[]> {
+  return apiRequest<BudgetListItem[]>("/budgets");
+}
