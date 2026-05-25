@@ -32,3 +32,10 @@ export async function createTransaction(
     body: JSON.stringify(dto),
   });
 }
+
+
+export async function getTransactions(budgetId: string): Promise<Transaction[]> {
+  return apiRequest<Transaction[]>(`/budgets/${budgetId}/transactions`, {
+    method: "GET",
+  });
+}
