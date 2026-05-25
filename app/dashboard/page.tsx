@@ -19,19 +19,19 @@ const MONTHS = [
 export default function DashboardPage() {
   const { logout } = useAuth();
   const router = useRouter();
-  const [budget, setBudget] = useState<ActiveBudget | null | undefined>(undefined); // undefined = loading
+  const [budget, setBudget] = useState<ActiveBudget | null | undefined>(undefined); 
   const { summary, loading: loadingSummary, error } = useBudgetSummary(budget?.id);
 
 
   useEffect(() => {
     getActiveBudget().then((b) => {
       setBudget(b);
-      // Si no hay presupuesto este mes → redirigir al wizard
+      
       if (!b) router.replace('/settingBudget');
     });
   }, [router]);
 
-  // Loading
+  
   if (budget === undefined) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -40,7 +40,7 @@ export default function DashboardPage() {
     );
   }
 
-  // No budget (redireccionando, pero por si acaso)
+  
   if (!budget) return null;
 
   const income = Number(budget.totalIncomeAmount);
