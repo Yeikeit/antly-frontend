@@ -10,6 +10,17 @@ const MONTH_NAMES = [
 	"Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
 
+// Helper para parsear fechas en zona horaria local
+function formatLocalDate(dateStr: string): string {
+	const [year, month, day] = dateStr.split("T")[0].split("-").map(Number);
+	const date = new Date(year, month - 1, day);
+	return date.toLocaleDateString("es-CL", {
+		month: "short",
+		day: "2-digit",
+		year: "numeric",
+	});
+}
+
 export default function TransactionsPage() {
 	const {
 		budget,
@@ -138,11 +149,7 @@ export default function TransactionsPage() {
 											</span>
 										</td>
 										<td className="p-3 text-slate-600">
-											{new Date(tx.transactionDate).toLocaleDateString(undefined, {
-												month: "short",
-												day: "2-digit",
-												year: "numeric",
-											})}
+											{formatLocalDate(tx.transactionDate)}
 										</td>
 										<td className={`p-3 text-right font-bold ${tx.type === "INCOME" ? "text-emerald-600" : "text-red-600"}`}>
 											{tx.type === "INCOME" ? "+" : "-"}${Math.abs(tx.amount).toLocaleString()}
