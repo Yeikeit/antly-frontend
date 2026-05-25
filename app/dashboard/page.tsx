@@ -116,18 +116,7 @@ export default function DashboardPage() {
 
         {/* CTA detalle */}
         <div className="flex gap-3">
-          <Link
-            href={`/budgets/${budget.id}`}
-            className="flex-1 text-center bg-[#0E7C8B] text-white font-semibold py-3 rounded-xl hover:bg-[#0a6470] transition-colors text-sm"
-          >
-            Ver detalle del presupuesto
-          </Link>
-          <Link
-            href="/transactions/new"
-            className="flex-1 text-center border border-slate-200 text-slate-600 font-medium py-3 rounded-xl hover:bg-slate-50 transition-colors text-sm"
-          >
-            Registrar transacción
-          </Link>
+          
         </div>
       </main>
     </div>
