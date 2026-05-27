@@ -3,14 +3,16 @@
 import { useState, useEffect } from "react";
 import { getActiveBudget, ActiveBudget } from "@/lib/api/budgets";
 import { getTransactions, Transaction, TransactionType } from "@/lib/api/transactions";
+import { getIncomes, type Income as BudgetIncome } from "@/lib/api/incomes";
 
 export type TypeFilter = "ALL" | TransactionType;
+export type TransactionRow = Transaction & { incomeSource?: BudgetIncome["incomeSource"] };
 
 const PAGE_SIZE = 5;
 
 export function useTransactions() {
   const [budget, setBudget] = useState<ActiveBudget | null>(null);
-  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<TransactionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("ALL");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
@@ -23,8 +25,29 @@ export function useTransactions() {
         const activeBudget = await getActiveBudget();
         setBudget(activeBudget);
         if (activeBudget) {
-          const txs = await getTransactions(activeBudget.id);
-          setAllTransactions(txs);
+          const [txs, incomes] = await Promise.all([
+            getTransactions(activeBudget.id),
+            getIncomes(activeBudget.id),
+          ]);
+
+          const incomeRows: TransactionRow[] = incomes.map((income) => ({
+            id: income.id,
+            userId: income.userId,
+            budgetId: income.budgetId,
+            categoryId: income.incomeSourceId,
+            amount: income.amount,
+            type: "INCOME",
+            transactionDate: income.receivedDate,
+            description: income.description ?? null,
+            createdAt: income.createdAt,
+            updatedAt: income.updatedAt,
+            incomeSource: income.incomeSource,
+          }));
+
+          setAllTransactions([
+            ...txs,
+            ...incomeRows,
+          ].sort((a, b) => b.transactionDate.localeCompare(a.transactionDate)));
         }
       } catch (error) {
         console.error("Error al cargar transacciones:", error);
