@@ -8,7 +8,6 @@ import BudgetMetricCard from "@/components/budget/BudgetMetricCard";
 import CategoryCard from "@/components/budget/CategoryCard";
 import { FaPlus } from "react-icons/fa";
 import Link from "next/link";
-import { HiOutlineInformationCircle } from "react-icons/hi";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -177,14 +176,6 @@ export default function BudgetPage() {
           )}
         </div>
       )}
-      <div className="flex items-start gap-3 bg-emerald-100 border border-emerald-200 text-emerald-950 rounded-2xl p-4 text-sm shadow-sm">
-        <div className="mt-0.5">
-          <HiOutlineInformationCircle size={20} />
-        </div>
-        <p>
-          Al finalizar el mes (11:59 PM), Antly cerrará el presupuesto activo y genera uno nuevo basado en el anterior. Puedes desactivar esta automatización en Configuración.
-        </p>
-      </div>
     </div>
   );
 }
