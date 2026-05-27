@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { HiOutlineInformationCircle } from "react-icons/hi";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -137,6 +138,18 @@ export default function BudgetConfirmationScreen() {
                       Excede ingresos por ${(totalAllocated - totalIncome).toLocaleString("es-CL", { minimumFractionDigits: 2 })}
                     </p>
                   )}
+                </div>
+              </div>
+
+              {/* Información automática de presupuestos */}
+              <div className="mt-3 flex items-start gap-3 bg-emerald-100 border border-emerald-200 text-emerald-950 rounded-2xl p-4 text-sm shadow-sm">
+                <div className="mt-0.5 flex-shrink-0">
+                  <HiOutlineInformationCircle size={20} />
+                </div>
+                <div className="flex-1">
+                  <p>
+                    Al finalizar el mes (11:59 PM), Antly cerrará automáticamente este presupuesto y creará uno nuevo basado en el anterior. Si prefieres gestionar tus presupuestos de forma manual, puedes desactivar esta automatización en Configuración.
+                  </p>
                 </div>
               </div>
             </section>
