@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import * as authApi from '@/lib/api/auth';
 import { persistSession } from '@/lib/auth/session';
 import { useAuthContext } from '@/store/auth-context';
+import { ApiError } from '@/lib/api/client';
 
 export function useRegister() {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,7 +27,11 @@ export function useRegister() {
 
                 router.push('/dashboard');
             } catch (err) {
-                setError('No se pudo crear la cuenta');
+                if (err instanceof ApiError && err.status === 409) {
+                    setError('Este correo ya está registrado. ¿Ya tienes cuenta?');
+                } else {
+                    setError('No se pudo crear la cuenta');
+                }
                 throw err;
             } finally {
                 setIsSubmitting(false);
