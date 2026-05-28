@@ -8,6 +8,7 @@ import BudgetMetricCard from "@/components/budget/BudgetMetricCard";
 import CategoryCard from "@/components/budget/CategoryCard";
 import { FaPlus } from "react-icons/fa";
 import Link from "next/link";
+import Loader from "@/components/ui/Loader";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -27,11 +28,7 @@ export default function BudgetPage() {
   }, [router]);
 
   if (budget === undefined || loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-sm text-slate-400">Cargando presupuesto...</p>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!budget || !summary) return null;

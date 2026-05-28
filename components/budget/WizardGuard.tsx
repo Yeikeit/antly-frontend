@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getActiveBudget } from '@/lib/api/budgets';
 import { useAuth } from '@/hooks/auth/useAuth';
+import Loader from '@/components/ui/Loader';
 
 export function WizardGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -21,11 +22,7 @@ export function WizardGuard({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   if (!checked) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-400">Cargando...</p>
-      </div>
-    );
+    return <Loader fullPage />;
   }
 
   return (

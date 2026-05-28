@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { useAuth } from '@/hooks/auth/useAuth';
 import { getActiveBudget, type ActiveBudget } from '@/lib/api/budgets';
 import Link from 'next/link';
 import { useBudgetSummary } from "@/hooks/budget/useBudgetSummary";
 import { BudgetChart } from "@/components/budget/BudgetChart";
 import RecentTransactions from '@/components/transaction/RecentTransactions';
+import Loader from '@/components/ui/Loader';
 
 
 const MONTHS = [
@@ -17,7 +16,6 @@ const MONTHS = [
 ];
 
 export default function DashboardPage() {
-  const { logout } = useAuth();
   const router = useRouter();
   const [budget, setBudget] = useState<ActiveBudget | null | undefined>(undefined); 
   const { summary, loading: loadingSummary, error } = useBudgetSummary(budget?.id);
@@ -33,11 +31,7 @@ export default function DashboardPage() {
 
   
   if (budget === undefined) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <p className="text-sm text-slate-400">Cargando...</p>
-      </div>
-    );
+    return <Loader fullPage />;
   }
 
   
@@ -49,10 +43,7 @@ export default function DashboardPage() {
   const allocatedPct = income > 0 ? Math.round((allocated / income) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <DashboardHeader onLogout={logout} />
-
-      <main className="max-w-4xl mx-auto px-6 py-10">
+    <div className="max-w-4xl mx-auto">
         {/* Encabezado del mes */}
         <div className="mb-8 flex items-center justify-between">
           <div>
@@ -85,7 +76,7 @@ export default function DashboardPage() {
           <div className="flex flex-col md:flex-row gap-6 mb-8 items-stretch">
         <div className="flex-1">
           {loadingSummary ? (
-            <div>Cargando gráfico...</div>
+            <Loader />
           ) : error ? (
             <div>Error al cargar el gráfico</div>
           ) : summary ? (
@@ -118,7 +109,6 @@ export default function DashboardPage() {
         <div className="flex gap-3">
           
         </div>
-      </main>
     </div>
   );
 }
