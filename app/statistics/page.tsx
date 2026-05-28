@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Loader from "@/components/ui/Loader";
 import {
   ResponsiveContainer,
   RadialBarChart,
@@ -520,7 +521,7 @@ export default function StatisticsPage() {
       {/* ── Loading ─────────────────────────────────────────────────────── */}
       {isLoading && (
         <div className="flex items-center justify-center py-24">
-          <p className="text-sm text-slate-400">Cargando estadísticas...</p>
+          <Loader />
         </div>
       )}
 

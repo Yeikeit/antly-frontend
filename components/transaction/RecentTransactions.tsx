@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useRecentTransactions } from "@/hooks/transaction/useRecentTransactions";
 import { useCategories } from "@/hooks/category/useCategories";
+import Loader from "@/components/ui/Loader";
 
 export default function RecentTransactions() {
   const { transactions, loading } = useRecentTransactions();
@@ -15,7 +16,7 @@ export default function RecentTransactions() {
         </Link>
       </div>
       {loading ? (
-        <div className="text-xs text-slate-400 py-4">Cargando...</div>
+        <Loader size="sm" />
       ) : transactions.length === 0 ? (
         <div className="text-xs text-slate-400 py-4">Aún no hay transacciones registradas</div>
       ) : (

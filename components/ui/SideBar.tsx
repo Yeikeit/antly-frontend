@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaRegChartBar, FaWallet, FaExchangeAlt, FaCog, FaPlus, FaChevronLeft, FaChevronRight, FaChartLine } from "react-icons/fa";
+import { FaRegChartBar, FaWallet, FaExchangeAlt, FaCog, FaPlus, FaChevronLeft, FaChevronRight, FaChartLine, FaSignOutAlt } from "react-icons/fa";
 import { IconType } from "react-icons";
 
 export type NavItem = {
@@ -25,6 +25,7 @@ type SideBarProps = {
   navItems?: NavItem[];
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  onLogout?: () => void;
 };
 
 export default function SideBar({
@@ -33,6 +34,7 @@ export default function SideBar({
   navItems = DEFAULT_NAV_ITEMS,
   collapsed = false,
   onToggleCollapse,
+  onLogout,
 }: SideBarProps) {
   const pathname = usePathname();
 
@@ -119,7 +121,7 @@ export default function SideBar({
         </div>
 
         {/* Footer CTA */}
-        <div className={`p-4 ${collapsed ? "md:px-3" : ""}`}>
+        <div className={`p-4 flex flex-col gap-2 ${collapsed ? "md:px-3" : ""}`}>
           <Link
             href="/transactions/new"
             onClick={onClose}
@@ -134,6 +136,22 @@ export default function SideBar({
             {!collapsed && <span className="whitespace-nowrap">Agregar Transacción</span>}
             {collapsed && <span className="whitespace-nowrap md:hidden">Agregar Transacción</span>}
           </Link>
+
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              title={collapsed ? "Cerrar sesión" : undefined}
+              className={`
+                hidden md:flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium w-full
+                text-red-500 bg-red-50 border border-red-100
+                hover:bg-red-100 hover:border-red-200 transition-colors text-sm
+                ${collapsed ? "md:justify-center md:px-2" : ""}
+              `}
+            >
+              <FaSignOutAlt size={14} className="flex-shrink-0" />
+              {!collapsed && <span className="whitespace-nowrap">Cerrar sesión</span>}
+            </button>
+          )}
         </div>
       </aside>
     </>

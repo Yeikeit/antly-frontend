@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTransactions, TypeFilter, SortOrder } from "@/hooks/transaction/useTransactions";
 import { useCategories } from "@/hooks/category/useCategories";
 import { getIncomeSources, type IncomeSource } from "@/lib/api/incomes";
+import Loader from "@/components/ui/Loader";
 
 const MONTH_NAMES = [
 	"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -127,7 +128,7 @@ export default function TransactionsPage() {
 
 
 	if (loading) {
-		return <div className="p-8 text-center text-slate-500">Cargando...</div>;
+		return <Loader />;
 	}
 	if (!budget) {
 		return <div className="p-8 text-center text-slate-500">No tienes un presupuesto activo.</div>;
