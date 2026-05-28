@@ -1,19 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getActiveBudget, ActiveBudget } from "@/lib/api/budgets";
 import { getTransactions, Transaction, TransactionType } from "@/lib/api/transactions";
+import { getIncomes, type Income as BudgetIncome } from "@/lib/api/incomes";
 
 export type TypeFilter = "ALL" | TransactionType;
+export type SortOrder = "desc" | "asc";
+export type TransactionRow = Transaction & { incomeSource?: BudgetIncome["incomeSource"] };
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 15;
 
 export function useTransactions() {
   const [budget, setBudget] = useState<ActiveBudget | null>(null);
-  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<TransactionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("ALL");
-  const [categoryFilter, setCategoryFilter] = useState<string>("");
+  // categoryIds: array de IDs a filtrar (subcategorías o fuentes); vacío = sin filtro
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -23,8 +28,33 @@ export function useTransactions() {
         const activeBudget = await getActiveBudget();
         setBudget(activeBudget);
         if (activeBudget) {
-          const txs = await getTransactions(activeBudget.id);
-          setAllTransactions(txs);
+          const [txs, incomes] = await Promise.all([
+            getTransactions(activeBudget.id),
+            getIncomes(activeBudget.id),
+          ]);
+
+          const incomeRows: TransactionRow[] = incomes.map((income) => ({
+            id: income.id,
+            userId: income.userId,
+            budgetId: income.budgetId,
+            categoryId: income.incomeSourceId,
+            amount: income.amount,
+            type: "INCOME",
+            transactionDate: income.receivedDate,
+            description: income.description ?? null,
+            createdAt: income.createdAt,
+            updatedAt: income.updatedAt,
+            incomeSource: income.incomeSource,
+          }));
+
+          setAllTransactions([
+            ...txs,
+            ...incomeRows,
+          ].sort((a, b) => {
+            const aTime = new Date(a.transactionDate).getTime();
+            const bTime = new Date(b.transactionDate).getTime();
+            return bTime - aTime;
+          }));
         }
       } catch (error) {
         console.error("Error al cargar transacciones:", error);
@@ -37,42 +67,60 @@ export function useTransactions() {
 
   const filtered = allTransactions.filter((tx) => {
     const matchesType = typeFilter === "ALL" || tx.type === typeFilter;
-    const matchesCategory = categoryFilter === "" || tx.categoryId === categoryFilter;
+    const matchesCategory = categoryIds.length === 0 || categoryIds.includes(tx.categoryId);
     return matchesType && matchesCategory;
   });
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const start = (page - 1) * PAGE_SIZE;
-  const paginated = filtered.slice(start, start + PAGE_SIZE);
-
-  function handleTypeFilter(value: TypeFilter) {
-    setTypeFilter(value);
-    setPage(1);
-  }
-
-  function handleCategoryFilter(value: string) {
-    setCategoryFilter(value);
-    setPage(1);
-  }
-
-  function goToPage(p: number) {
-    if (p >= 1 && p <= totalPages) {
-      setPage(p);
+  const sorted = [...filtered].sort((a, b) => {
+    const aDate = new Date(a.transactionDate).getTime();
+    const bDate = new Date(b.transactionDate).getTime();
+    if (aDate !== bDate) {
+      return sortOrder === "desc" ? bDate - aDate : aDate - bDate;
     }
-  }
+    // Mismo día: desempatar por hora de creación
+    const aCreated = new Date(a.createdAt).getTime();
+    const bCreated = new Date(b.createdAt).getTime();
+    return sortOrder === "desc" ? bCreated - aCreated : aCreated - bCreated;
+  });
 
-  const startEntry = filtered.length === 0 ? 0 : start + 1;
-  const endEntry = Math.min(start + PAGE_SIZE, filtered.length);
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const start = (page - 1) * PAGE_SIZE;
+  const paginated = sorted.slice(start, start + PAGE_SIZE);
+
+  const handleTypeFilter = useCallback((value: TypeFilter) => {
+    setTypeFilter(value);
+    setCategoryIds([]);
+    setPage(1);
+  }, []);
+
+  const handleCategoryIds = useCallback((ids: string[]) => {
+    setCategoryIds(ids);
+    setPage(1);
+  }, []);
+
+  const goToPage = useCallback((p: number) => {
+    setPage((prev) => (p >= 1 ? p : prev));
+  }, []);
+
+  const handleSortOrder = useCallback((order: SortOrder) => {
+    setSortOrder(order);
+    setPage(1);
+  }, []);
+
+  const startEntry = sorted.length === 0 ? 0 : start + 1;
+  const endEntry = Math.min(start + PAGE_SIZE, sorted.length);
 
   return {
     budget,
     transactions: paginated,
-    totalFiltered: filtered.length,
+    totalFiltered: sorted.length,
     loading,
     typeFilter,
     setTypeFilter: handleTypeFilter,
-    categoryFilter,
-    setCategoryFilter: handleCategoryFilter,
+    categoryIds,
+    setCategoryIds: handleCategoryIds,
+    sortOrder,
+    setSortOrder: handleSortOrder,
     page,
     setPage: goToPage,
     totalPages,

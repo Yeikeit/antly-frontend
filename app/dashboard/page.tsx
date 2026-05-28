@@ -82,7 +82,7 @@ export default function DashboardPage() {
           ))}
         </div>
 
-          <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex flex-col md:flex-row gap-6 mb-8 items-stretch">
         <div className="flex-1">
           {loadingSummary ? (
             <div>Cargando gráfico...</div>

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { getActiveBudget } from "@/lib/api/budgets";
 import { getCategories, type CategoryTree, type Subcategory, type CategoryType } from "@/lib/api/categories";
 import { createTransaction, type TransactionType } from "@/lib/api/transactions";
+import { getIncomeSources, createIncome, type IncomeSource } from "@/lib/api/incomes";
+import { IncomeSourceSelect } from "@/components/transaction/IncomeSourceSelect";
 import { FaChevronDown, FaCheck } from "react-icons/fa";
 import Link from "next/link";
 
@@ -104,9 +106,11 @@ export default function NewTransactionPage() {
   const [date, setDate]                 = useState(toLocalDateString(new Date()));
   const [description, setDescription]   = useState("");
   const [categories, setCategories]     = useState<CategoryTree[]>([]);
+  const [incomeSources, setIncomeSources] = useState<IncomeSource[]>([]);
   const [budgetId, setBudgetId]         = useState<string | null>(null);
   const [selectedCatId, setSelectedCatId] = useState("");
   const [selectedSubId, setSelectedSubId] = useState("");
+  const [selectedIncomeSourceId, setSelectedIncomeSourceId] = useState("");
   const [saving, setSaving]             = useState(false);
   const [error, setError]               = useState<string | null>(null);
 
@@ -115,10 +119,23 @@ export default function NewTransactionPage() {
       if (!b) { router.replace("/settingBudget"); return; }
       setBudgetId(b.id);
     });
+
     getCategories().then(setCategories);
+    getIncomeSources().then((sources) => {
+      setIncomeSources(sources.filter((source) => source.isActive));
+    });
   }, [router]);
 
+  useEffect(() => {
+    if (!selectedIncomeSourceId) return;
+    const stillAvailable = incomeSources.some((source) => source.id === selectedIncomeSourceId);
+    if (!stillAvailable) {
+      setSelectedIncomeSourceId("");
+    }
+  }, [incomeSources, selectedIncomeSourceId]);
+
   const typeMap: Record<Tab, CategoryType> = { EXPENSE: "EXPENSE", INCOME: "INCOME" };
+  const isIncome = tab === "INCOME";
   const filteredCats  = categories.filter((c) => c.type === typeMap[tab]);
   const selectedCat   = filteredCats.find((c) => c.id === selectedCatId) ?? null;
   const subcategories: Subcategory[] = selectedCat?.subcategories ?? [];
@@ -130,6 +147,7 @@ export default function NewTransactionPage() {
     setTab(t);
     setSelectedCatId("");
     setSelectedSubId("");
+    setSelectedIncomeSourceId("");
   }
 
   function handleCatChange(id: string) {
@@ -138,21 +156,31 @@ export default function NewTransactionPage() {
   }
 
   const amount  = parseFloat(amountStr.replace(",", ".")) || 0;
-  const canSave = amount > 0 && selectedSubId !== "" && budgetId !== null;
+  const canSave = amount > 0 && budgetId !== null && (isIncome ? selectedIncomeSourceId !== "" : selectedSubId !== "");
 
   async function handleSave() {
     if (!canSave || !budgetId) return;
     setSaving(true);
     setError(null);
     try {
-      await createTransaction(budgetId, {
-        categoryId: selectedSubId,
-        type: tab as TransactionType,
-        amount,
-        transactionDate: date,
-        description: description.trim() || undefined,
-      });
-      router.push("/budget");
+      if (isIncome) {
+        await createIncome(budgetId, {
+          incomeSourceId: selectedIncomeSourceId,
+          budgetId,
+          amount,
+          receivedDate: date,
+          description: description.trim() || undefined,
+        });
+      } else {
+        await createTransaction(budgetId, {
+          categoryId: selectedSubId,
+          type: tab as TransactionType,
+          amount,
+          transactionDate: date,
+          description: description.trim() || undefined,
+        });
+      }
+      router.push("/transactions");
     } catch {
       setError("No se pudo guardar la transacción. Intenta de nuevo.");
     } finally {
@@ -207,52 +235,63 @@ export default function NewTransactionPage() {
           </div>
         </div>
 
-        {/* Categoría */}
-        <div className="p-6 space-y-4">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Categoría</p>
-          <div className="grid grid-cols-2 gap-4">
-
-            {/* Categoría padre */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-600">Categoría</label>
-              <CustomSelect
-                options={catOptions}
-                value={selectedCatId}
-                onChange={handleCatChange}
-                placeholder="Seleccionar..."
-              />
-            </div>
-
-            {/* Subcategoría */}
-            <div className="space-y-1.5">
-              <label className={`text-sm font-medium transition-colors ${!selectedCatId ? "text-slate-300" : "text-slate-600"}`}>
-                Subcategoría
-              </label>
-              <CustomSelect
-                options={subOptions}
-                value={selectedSubId}
-                onChange={setSelectedSubId}
-                placeholder={!selectedCatId ? "Primero elige categoría" : "Seleccionar..."}
-                disabled={!selectedCatId}
-              />
-            </div>
-
+        {isIncome ? (
+          <div className="p-6 space-y-4">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Fuente de ingreso</p>
+            <IncomeSourceSelect
+              sources={incomeSources}
+              value={selectedIncomeSourceId}
+              onChange={setSelectedIncomeSourceId}
+              onNewSourceCreated={(source) => setIncomeSources((prev) => [...prev, source])}
+            />
           </div>
+        ) : (
+          <div className="p-6 space-y-4">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Categoría</p>
+            <div className="grid grid-cols-2 gap-4">
 
-          {/* Chip de selección activa */}
-          {selectedCat && selectedSubId && (
-            <div className="flex items-center gap-2 mt-1">
-              <span className="w-2 h-2 rounded-full bg-[#0E7C8B]" />
-              <span className="text-sm text-slate-500">
-                {selectedCat.name}
-                <span className="text-slate-300 mx-1.5">›</span>
-                <span className="text-[#0E7C8B] font-medium">
-                  {subcategories.find((s) => s.id === selectedSubId)?.name}
-                </span>
-              </span>
+              {/* Categoría padre */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-600">Categoría</label>
+                <CustomSelect
+                  options={catOptions}
+                  value={selectedCatId}
+                  onChange={handleCatChange}
+                  placeholder="Seleccionar..."
+                />
+              </div>
+
+              {/* Subcategoría */}
+              <div className="space-y-1.5">
+                <label className={`text-sm font-medium transition-colors ${!selectedCatId ? "text-slate-300" : "text-slate-600"}`}>
+                  Subcategoría
+                </label>
+                <CustomSelect
+                  options={subOptions}
+                  value={selectedSubId}
+                  onChange={setSelectedSubId}
+                  placeholder={!selectedCatId ? "Primero elige categoría" : "Seleccionar..."}
+                  disabled={!selectedCatId}
+                />
+              </div>
+
             </div>
-          )}
-        </div>
+
+            {/* Chip de selección activa */}
+            {selectedCat && selectedSubId && (
+              <div className="flex items-center gap-2 mt-1">
+                <span className="w-2 h-2 rounded-full bg-[#0E7C8B]" />
+                <span className="text-sm text-slate-500">
+                  {selectedCat.name}
+                  <span className="text-slate-300 mx-1.5">›</span>
+                  <span className="text-[#0E7C8B] font-medium">
+                    {subcategories.find((s) => s.id === selectedSubId)?.name}
+                  </span>
+                </span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Fecha y Nota en grid */}
         <div className="p-6 grid grid-cols-2 gap-6">
@@ -296,7 +335,7 @@ export default function NewTransactionPage() {
       {/* Acciones */}
       <div className="flex gap-3">
         <Link
-          href="/budget"
+          href="/transactions"
           className="flex-1 text-center border border-slate-200 text-slate-600 font-semibold py-3 rounded-xl hover:bg-slate-50 transition-colors text-sm"
         >
           Cancelar

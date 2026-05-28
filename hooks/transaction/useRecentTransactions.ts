@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { getActiveBudget } from "@/lib/api/budgets";
-import { getTransactions, Transaction } from "@/lib/api/transactions";
+import { getTransactions } from "@/lib/api/transactions";
+import { getIncomes } from "@/lib/api/incomes";
 
 type RecentTransaction = {
   id: string;
@@ -15,18 +16,13 @@ type RecentTransaction = {
 
 function getRelativeDateLabel(dateStr: string): string {
   const [year, month, day] = dateStr.split("T")[0].split("-").map(Number);
-  const txDate = new Date(year, month - 1, day); // Crea la fecha en zona horaria local
-  
+  const txDate = new Date(year, month - 1, day);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   txDate.setHours(0, 0, 0, 0);
-
-  const diffTime = today.getTime() - txDate.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
+  const diffDays = Math.floor((today.getTime() - txDate.getTime()) / (1000 * 60 * 60 * 24));
   if (diffDays === 0) return "Hoy";
   if (diffDays === 1) return "Ayer";
-  
   return txDate.toLocaleDateString("es-CL", { month: "short", day: "2-digit" });
 }
 
@@ -40,19 +36,49 @@ export function useRecentTransactions() {
       try {
         const activeBudget = await getActiveBudget();
         if (activeBudget) {
-          const txs = await getTransactions(activeBudget.id);
-          // Tomar las últimas 4 transacciones (ordenadas más recientes primero)
-          const recent = txs
-            .sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime())
-            .slice(0, 4)
-            .map((tx) => ({
-              id: tx.id,
-              name: tx.description || "Sin descripción",
-              category: tx.categoryId, // Por ahora el ID, se mapea en el componente
-              dateLabel: getRelativeDateLabel(tx.transactionDate),
-              amount: `${tx.type === "INCOME" ? "+" : "-"}$${Math.abs(tx.amount).toLocaleString()}`,
-              isIncome: tx.type === "INCOME",
+          const [txs, incomes] = await Promise.all([
+            getTransactions(activeBudget.id),
+            getIncomes(activeBudget.id),
+          ]);
+
+          type Row = { id: string; date: string; createdAt: string; name: string; category: string; amount: number; isIncome: boolean };
+
+          const expenseRows: Row[] = txs.map((tx) => ({
+            id: tx.id,
+            date: tx.transactionDate,
+            createdAt: tx.createdAt,
+            name: tx.description || "Sin descripción",
+            category: tx.categoryId,
+            amount: tx.amount,
+            isIncome: tx.type === "INCOME",
+          }));
+
+          const incomeRows: Row[] = incomes.map((inc) => ({
+            id: inc.id,
+            date: inc.receivedDate,
+            createdAt: inc.createdAt,
+            name: inc.description || "Sin descripción",
+            category: inc.incomeSource?.name ?? "Fuente de ingreso",
+            amount: inc.amount,
+            isIncome: true,
+          }));
+
+          const recent = [...expenseRows, ...incomeRows]
+            .sort((a, b) => {
+              const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+              if (dateDiff !== 0) return dateDiff;
+              return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            })
+            .slice(0, 5)
+            .map((row) => ({
+              id: row.id,
+              name: row.name,
+              category: row.category,
+              dateLabel: getRelativeDateLabel(row.date),
+              amount: `${row.isIncome ? "+" : "-"}$${Math.abs(row.amount).toLocaleString()}`,
+              isIncome: row.isIncome,
             }));
+
           setTransactions(recent);
         }
       } catch (error) {
