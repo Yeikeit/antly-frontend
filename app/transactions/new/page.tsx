@@ -121,8 +121,18 @@ export default function NewTransactionPage() {
     });
 
     getCategories().then(setCategories);
-    getIncomeSources().then(setIncomeSources);
+    getIncomeSources().then((sources) => {
+      setIncomeSources(sources.filter((source) => source.isActive));
+    });
   }, [router]);
+
+  useEffect(() => {
+    if (!selectedIncomeSourceId) return;
+    const stillAvailable = incomeSources.some((source) => source.id === selectedIncomeSourceId);
+    if (!stillAvailable) {
+      setSelectedIncomeSourceId("");
+    }
+  }, [incomeSources, selectedIncomeSourceId]);
 
   const typeMap: Record<Tab, CategoryType> = { EXPENSE: "EXPENSE", INCOME: "INCOME" };
   const isIncome = tab === "INCOME";
@@ -325,7 +335,7 @@ export default function NewTransactionPage() {
       {/* Acciones */}
       <div className="flex gap-3">
         <Link
-          href="/budget"
+          href="/transactions"
           className="flex-1 text-center border border-slate-200 text-slate-600 font-semibold py-3 rounded-xl hover:bg-slate-50 transition-colors text-sm"
         >
           Cancelar

@@ -64,7 +64,7 @@ export function BudgetChart({ allocations }: Props) {
   const fmt = (v: number) => `$${v.toLocaleString("es-CL")}`;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm mb-8">
+    <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm h-full">
       <h2 className="text-base font-bold mb-4 text-slate-800">Distribución por categoría</h2>
       <ResponsiveContainer width="100%" height={280}>
         <PieChart>

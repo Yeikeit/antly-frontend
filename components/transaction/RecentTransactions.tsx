@@ -7,7 +7,7 @@ export default function RecentTransactions() {
   const { categoryMap } = useCategories();
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-5 w-full border border-slate-100">
+    <div className="bg-white rounded-2xl shadow-sm p-5 w-full border border-slate-100 h-full">
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-semibold text-lg text-slate-900">Reciente</h3>
         <Link href="/transactions" className="text-xs text-[#0E7C8B] hover:underline font-medium">
@@ -25,7 +25,8 @@ export default function RecentTransactions() {
               <div className="flex-1">
                 <div className="font-medium text-slate-900 text-sm">{tx.name}</div>
                 <div className="text-xs text-slate-500">
-                  {categoryMap[tx.category] || tx.category} • {tx.dateLabel}
+                  {/* Si es ingreso, category ya viene con el nombre; si es gasto, mapear desde categoryMap */}
+                  {tx.isIncome ? tx.category : (categoryMap[tx.category] || tx.category)} • {tx.dateLabel}
                 </div>
               </div>
               <div
