@@ -188,6 +188,25 @@ export async function getBudgetIncomes(budgetId: string): Promise<BudgetIncome[]
   }));
 }
 
+export async function closeBudget(budgetId: string, reason: string): Promise<void> {
+  await apiRequest<void>(`/budgets/${budgetId}/close`, {
+    method: "PATCH",
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export async function reopenBudget(budgetId: string): Promise<void> {
+  await apiRequest<void>(`/budgets/${budgetId}/reopen`, {
+    method: "PATCH",
+  });
+}
+
+export async function deleteBudget(budgetId: string): Promise<void> {
+  await apiRequest<void>(`/budgets/${budgetId}`, {
+    method: "DELETE",
+  });
+}
+
 export async function updateBudgetWizard(
   budgetId: string,
   data: {
