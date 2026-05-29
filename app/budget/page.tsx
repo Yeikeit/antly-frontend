@@ -83,6 +83,12 @@ export default function BudgetPage() {
             Activo
           </span>
           <Link
+            href={`/budget/${budget.id}/edit/incomes`}
+            className="flex items-center gap-1.5 border border-[#0E7C8B] text-[#0E7C8B] text-sm font-semibold px-4 py-2 rounded-xl hover:bg-teal-50 transition-colors"
+          >
+            ✏️ Editar
+          </Link>
+          <Link
             href="/transactions/new"
             className="flex items-center gap-2 bg-[#0E7C8B] text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-[#0a6470] transition-colors"
           >

@@ -138,3 +138,71 @@ export async function getLastBudgetStructure(): Promise<LastBudgetStructure | nu
     return null;
   }
 }
+
+export interface UpsertAllocationDto {
+  categoryId: string;
+  allocatedAmount: number;
+}
+
+export async function upsertAllocation(
+  budgetId: string,
+  dto: UpsertAllocationDto
+): Promise<void> {
+  return apiRequest<void>(`/budgets/${budgetId}/allocations`, {
+    method: "PUT",
+    body: JSON.stringify(dto),
+  });
+}
+
+export async function removeAllocation(
+  budgetId: string,
+  categoryId: string
+): Promise<void> {
+  return apiRequest<void>(`/budgets/${budgetId}/allocations/${categoryId}`, {
+    method: "DELETE",
+  });
+}
+
+export interface BudgetIncome {
+  id: string;
+  incomeSourceId: string;
+  incomeSourceName: string;
+  amount: number;
+  receivedDate: string;
+}
+
+export async function getBudgetIncomes(budgetId: string): Promise<BudgetIncome[]> {
+  const data = await apiRequest<Array<{
+    id: string;
+    incomeSourceId: string;
+    incomeSource: { id: string; name: string };
+    amount: number;
+    receivedDate: string;
+  }>>(`/budgets/${budgetId}/incomes`);
+  return data.map((i) => ({
+    id: i.id,
+    incomeSourceId: i.incomeSourceId,
+    incomeSourceName: i.incomeSource.name,
+    amount: Number(i.amount),
+    receivedDate: i.receivedDate,
+  }));
+}
+
+export async function updateBudgetWizard(
+  budgetId: string,
+  data: {
+    incomeSources: { name: string; amount: number }[];
+    categories: {
+      id?: string;
+      name: string;
+      type: "EXPENSE" | "SAVING";
+      subcategories: { id?: string; name: string; budget: number }[];
+    }[];
+    notes?: string;
+  }
+): Promise<void> {
+  await apiRequest<void>(`/budgets/${budgetId}/wizard`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}

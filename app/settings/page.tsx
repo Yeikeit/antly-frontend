@@ -393,7 +393,6 @@ export default function SettingsPage() {
       <ProfileSection />
       <SecuritySection />
       <BudgetPreferencesSection />
-      <DangerZoneSection />
     </div>
   );
 }
