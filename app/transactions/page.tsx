@@ -3,10 +3,12 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useTransactions, TypeFilter, SortOrder } from "@/hooks/transaction/useTransactions";
+import { useTransactions, TypeFilter, SortOrder, type TransactionRow, type UpdatePayload } from "@/hooks/transaction/useTransactions";
 import { useCategories } from "@/hooks/category/useCategories";
 import { getIncomeSources, type IncomeSource } from "@/lib/api/incomes";
 import Loader from "@/components/ui/Loader";
+import { EditTransactionModal } from "@/components/transaction/EditTransactionModal";
+import { DeleteConfirmModal } from "@/components/transaction/DeleteConfirmModal";
 
 const MONTH_NAMES = [
 	"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -49,6 +51,8 @@ export default function TransactionsPage() {
 		totalPages,
 		startEntry,
 		endEntry,
+		deleteRow,
+		updateRow,
 	} = useTransactions();
 
 	const { categories, categoryMap } = useCategories();
@@ -56,6 +60,8 @@ export default function TransactionsPage() {
 	const [parentCategory, setParentCategory] = useState<string>("");
 	const [subCategory, setSubCategory] = useState<string>("");
 	const [mounted, setMounted] = useState(false);
+	const [editTx, setEditTx] = useState<TransactionRow | null>(null);
+	const [deleteTx, setDeleteTx] = useState<TransactionRow | null>(null);
 
 	// Marcar como montado para que la hora se formatee en el cliente
 	useEffect(() => { setMounted(true); }, []);
@@ -137,6 +143,7 @@ export default function TransactionsPage() {
 	const currentMonth = `${MONTH_NAMES[budget.month - 1]} ${budget.year}`;
 
 	return (
+		<>
 		<div className="min-h-screen bg-slate-50">
 			<div className="max-w-5xl mx-auto p-6">
 				{/* Header y balance */}
@@ -409,6 +416,7 @@ export default function TransactionsPage() {
 										<td className="p-4 text-right">
 											<div className="flex items-center justify-end gap-2">
 												<button
+													onClick={() => setEditTx(tx)}
 													className="p-2 text-slate-400 hover:text-[#0E7C8B] hover:bg-[#0E7C8B]/10 rounded-lg transition-colors"
 													title="Editar"
 												>
@@ -417,6 +425,7 @@ export default function TransactionsPage() {
 													</svg>
 												</button>
 												<button
+													onClick={() => setDeleteTx(tx)}
 													className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
 													title="Eliminar"
 												>
@@ -460,5 +469,26 @@ export default function TransactionsPage() {
 				</section>
 			</div>
 		</div>
+
+		{editTx && (
+			<EditTransactionModal
+				transaction={editTx}
+				onClose={() => setEditTx(null)}
+				onSave={async (tx: TransactionRow, payload: UpdatePayload) => {
+					await updateRow(tx, payload);
+				}}
+			/>
+		)}
+
+		{deleteTx && (
+			<DeleteConfirmModal
+				transaction={deleteTx}
+				onClose={() => setDeleteTx(null)}
+				onConfirm={async (tx: TransactionRow) => {
+					await deleteRow(tx);
+				}}
+			/>
+		)}
+		</>
 	);
 }
