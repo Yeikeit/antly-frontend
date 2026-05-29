@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useBudgetSummary } from "@/hooks/budget/useBudgetSummary";
 import { BudgetChart } from "@/components/budget/BudgetChart";
 import RecentTransactions from '@/components/transaction/RecentTransactions';
+import { formatCLP } from "@/lib/utils/currency";
 import Loader from '@/components/ui/Loader';
 
 
@@ -172,7 +173,7 @@ export default function DashboardPage() {
             <div key={m.label} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
               <p className="text-xs text-slate-400 mb-1">{m.label}</p>
               <p className={`text-xl font-bold ${m.color}`}>
-                ${m.value.toLocaleString('es-CL', { minimumFractionDigits: 0 })}
+                ${formatCLP(m.value)}
               </p>
             </div>
           ))}
@@ -205,7 +206,7 @@ export default function DashboardPage() {
             />
           </div>
           <p className="mt-2 text-xs text-slate-400">
-            ${allocated.toLocaleString('es-CL')} de ${income.toLocaleString('es-CL')} asignados
+            ${formatCLP(allocated)} de ${formatCLP(income)} asignados
           </p>
         </div>
 

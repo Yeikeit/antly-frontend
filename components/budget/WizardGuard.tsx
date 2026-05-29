@@ -30,9 +30,9 @@ export function WizardGuard({ children }: { children: React.ReactNode }) {
       <div className="absolute top-4 right-4 z-50">
         <button
           onClick={logout}
-          className="text-xs text-slate-400 hover:text-red-500 transition-colors font-medium px-3 py-1.5 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-100"
+          className="flex items-center gap-1.5 text-xs font-semibold text-red-500 bg-red-50 border border-red-200 hover:bg-red-100 hover:border-red-300 transition-colors px-3 py-1.5 rounded-lg"
         >
-          Cerrar sesión
+          <span>✕</span> Cerrar sesión
         </button>
       </div>
       {children}

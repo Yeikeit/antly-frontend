@@ -6,6 +6,7 @@ import { CategoryDetailCard } from "@/components/budget/CategoryDetailCard";
 import { useBudget } from "@/hooks/budget/useBudget";
 import { useBudgetFlow } from "@/store/BudgetFlowContext";
 import { BudgetWrapper } from "@/components/budget/BudgetWrapper";
+import { formatCLP } from "@/lib/utils/currency";
 import StepsLayout from "@/components/ui/StepsLayout";
 
 export default function BudgetScreen() {
@@ -79,7 +80,7 @@ export default function BudgetScreen() {
             <p className="text-sm text-slate-500">
               Presupuesto restante:{" "}
               <span className={`font-semibold ${isOver ? "text-red-600" : "text-[#0E7C8B]"}`}>
-                ${remaining.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+                ${formatCLP(remaining)}
               </span>
             </p>
 

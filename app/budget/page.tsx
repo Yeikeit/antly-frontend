@@ -7,6 +7,7 @@ import { getBudgetPreferences } from "@/lib/api/users";
 import { useBudgetSummary } from "@/hooks/budget/useBudgetSummary";
 import BudgetMetricCard from "@/components/budget/BudgetMetricCard";
 import CategoryCard from "@/components/budget/CategoryCard";
+import { formatCLP } from "@/lib/utils/currency";
 import { FaPlus } from "react-icons/fa";
 import Link from "next/link";
 import Loader from "@/components/ui/Loader";
@@ -164,8 +165,10 @@ export default function BudgetPage() {
   const income = Number(summary.totalIncomeAmount);
   const allocated = Number(summary.totalAllocatedAmount);
   const spent = Number(summary.totalSpent);
-  const remaining = Number(summary.totalRemaining);
+  const unallocated = income - allocated;
+  const budgetRemaining = allocated - spent;
   const spentPct = allocated > 0 ? Math.min(Math.round((spent / allocated) * 100), 100) : 0;
+  const allocatedPct = income > 0 ? Math.round((allocated / income) * 100) : 0;
 
   // La API solo devuelve subcategorías; reconstruimos los padres agrupando por parentId
   const subByParent = summary.allocations.reduce<Record<string, typeof summary.allocations>>(
@@ -234,13 +237,18 @@ export default function BudgetPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <BudgetMetricCard label="Ingresos" amount={income} color="slate" />
-        <BudgetMetricCard label="Asignado" amount={allocated} color="teal" />
-        <BudgetMetricCard label="Gastado" amount={spent} color="orange" />
+        <BudgetMetricCard label="Asignado" amount={allocated} color="teal" sub={`${allocatedPct}% del ingreso planificado`} />
         <BudgetMetricCard
-          label="Saldo restante"
-          amount={remaining}
-          color={remaining >= 0 ? "emerald" : "red"}
-          sub={`${spentPct}% ejecutado`}
+          label="Sin asignar"
+          amount={unallocated}
+          color={unallocated > 0 ? "amber" : "emerald"}
+          sub="Ingreso sin presupuestar"
+        />
+        <BudgetMetricCard
+          label="Gastado"
+          amount={spent}
+          color="orange"
+          sub={`Saldo del presupuesto: $${formatCLP(budgetRemaining)}`}
         />
       </div>
 
@@ -255,9 +263,12 @@ export default function BudgetPage() {
             style={{ width: `${spentPct}%` }}
           />
         </div>
-        <p className="mt-2 text-xs text-slate-400">
-          ${spent.toLocaleString("es-CL")} gastados de ${allocated.toLocaleString("es-CL")} asignados
-        </p>
+        <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
+          <span>${formatCLP(spent)} gastados de ${formatCLP(allocated)} asignados</span>
+          <span className={budgetRemaining >= 0 ? "text-emerald-600 font-medium" : "text-red-500 font-medium"}>
+            Saldo: ${formatCLP(budgetRemaining)}
+          </span>
+        </div>
       </div>
 
       {error ? (
@@ -291,9 +302,9 @@ export default function BudgetPage() {
                   <span className="text-slate-500">
                     Ahorrado:{" "}
                     <span className="font-semibold text-emerald-600">
-                      ${totalSaved.toLocaleString("es-CL")}
+                      ${formatCLP(totalSaved)}
                     </span>
-                    {" "}/ ${totalSavingAllocated.toLocaleString("es-CL")}
+                    {" "}/ ${formatCLP(totalSavingAllocated)}
                   </span>
                   <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-xs font-semibold px-2.5 py-1 rounded-full">
                     {savingRate}% del ingreso
