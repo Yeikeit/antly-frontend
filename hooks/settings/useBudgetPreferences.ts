@@ -12,8 +12,8 @@ export function useBudgetPreferences() {
 
   useEffect(() => {
     usersApi.getBudgetPreferences()
-      .then((prefs) => setMonthlyAutomation(prefs.monthlyAutomation))
-      .catch(() => {/* use default false on error */})
+      .then((prefs) => setMonthlyAutomation(prefs.budgetAutomation))
+      .catch(() => {})
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -21,12 +21,12 @@ export function useBudgetPreferences() {
     setIsSaving(true);
     setError(null);
     const previous = monthlyAutomation;
-    setMonthlyAutomation(value); // optimistic update
+    setMonthlyAutomation(value);
     try {
-      const updated = await usersApi.updateBudgetPreferences({ monthlyAutomation: value });
-      setMonthlyAutomation(updated.monthlyAutomation);
+      const updated = await usersApi.updateBudgetPreferences({ budgetAutomation: value });
+      setMonthlyAutomation(updated.budgetAutomation);
     } catch (err) {
-      setMonthlyAutomation(previous); // rollback
+      setMonthlyAutomation(previous);
       setError(err instanceof ApiError ? err.message : 'Error al guardar preferencias');
     } finally {
       setIsSaving(false);
