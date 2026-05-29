@@ -6,6 +6,7 @@ import { IncomeCard } from "@/components/income/IncomeCard";
 import { IncomeSourceList } from "@/components/income/incomeSourceList";
 import { IncomeSourceForm } from "@/components/income/IncomeSourceForm";
 import { AddSourceButton } from "@/components/income/AddSourceButton";
+import { formatCLP } from "@/lib/utils/currency";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -55,7 +56,7 @@ export function EditIncomeScreen() {
           <div>
             <p className="text-xs text-slate-500">Ingreso Total Estimado</p>
             <p className="text-2xl font-bold text-[#0E7C8B]">
-              ${total.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+              ${formatCLP(total)}
             </p>
           </div>
           <div className="flex gap-2">

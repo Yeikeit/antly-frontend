@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getActiveBudget } from "@/lib/api/budgets";
+import { getActiveBudget, getBudgetSummary } from "@/lib/api/budgets";
 import { getCategories, type CategoryTree, type Subcategory, type CategoryType } from "@/lib/api/categories";
 import { createTransaction, type TransactionType } from "@/lib/api/transactions";
 import { getIncomeSources, createIncome, type IncomeSource } from "@/lib/api/incomes";
@@ -115,12 +115,31 @@ export default function NewTransactionPage() {
   const [error, setError]               = useState<string | null>(null);
 
   useEffect(() => {
-    getActiveBudget().then((b) => {
+    getActiveBudget().then(async (b) => {
       if (!b) { router.replace("/settingBudget"); return; }
       setBudgetId(b.id);
+
+      // Load categories and summary in parallel, then filter to only
+      // subcategories that have an allocation in the active budget.
+      const [allCats, summary] = await Promise.all([
+        getCategories(),
+        getBudgetSummary(b.id).catch(() => null),
+      ]);
+
+      if (summary) {
+        const allocatedIds = new Set(summary.allocations.map((a) => a.categoryId));
+        const filtered = allCats
+          .map((cat) => ({
+            ...cat,
+            subcategories: cat.subcategories.filter((sub) => allocatedIds.has(sub.id)),
+          }))
+          .filter((cat) => cat.subcategories.length > 0);
+        setCategories(filtered);
+      } else {
+        setCategories(allCats);
+      }
     });
 
-    getCategories().then(setCategories);
     getIncomeSources().then((sources) => {
       setIncomeSources(sources.filter((source) => source.isActive));
     });

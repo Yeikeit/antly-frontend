@@ -6,6 +6,7 @@ import { useEditBudgetFlow } from "@/store/EditBudgetFlowContext";
 import { CategorySidebar } from "@/components/budget/CategorySidebar";
 import { CategoryDetailCard } from "@/components/budget/CategoryDetailCard";
 import { BudgetWrapper } from "@/components/budget/BudgetWrapper";
+import { formatCLP } from "@/lib/utils/currency";
 
 function RemoveWarningDialog({
   categoryName,
@@ -28,7 +29,7 @@ function RemoveWarningDialog({
             <p className="mt-1 text-sm text-slate-600">
               La subcategoría <strong>{categoryName}</strong> tiene{" "}
               <strong className="text-amber-600">
-                ${spent.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+                ${formatCLP(spent)}
               </strong>{" "}
               en transacciones registradas. Desasociarla no eliminará esas transacciones del
               historial, pero quedarán sin categoría de presupuesto.
@@ -193,7 +194,7 @@ export function EditAllocationScreen() {
             <p className="text-sm text-slate-500">
               Presupuesto restante:{" "}
               <span className={`font-semibold ${isOver ? "text-red-600" : "text-[#0E7C8B]"}`}>
-                ${remaining.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+                ${formatCLP(remaining)}
               </span>
             </p>
 

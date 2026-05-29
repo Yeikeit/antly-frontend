@@ -25,7 +25,7 @@ export function useRegister() {
                 persistSession(response);
                 setUser(response.user);
 
-                router.push('/dashboard');
+                router.push('/settingBudget');
             } catch (err) {
                 if (err instanceof ApiError && err.status === 409) {
                     setError('Este correo ya está registrado. ¿Ya tienes cuenta?');

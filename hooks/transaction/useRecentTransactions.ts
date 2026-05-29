@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { getActiveBudget } from "@/lib/api/budgets";
 import { getTransactions } from "@/lib/api/transactions";
 import { getIncomes } from "@/lib/api/incomes";
+import { formatCLP } from "@/lib/utils/currency";
 
 type RecentTransaction = {
   id: string;
@@ -75,7 +76,8 @@ export function useRecentTransactions() {
               name: row.name,
               category: row.category,
               dateLabel: getRelativeDateLabel(row.date),
-              amount: `${row.isIncome ? "+" : "-"}$${Math.abs(row.amount).toLocaleString()}`,
+              amount: `${row.isIncome ? "+" : "-"}$${formatCLP(Math.abs(row.amount))}`,
+
               isIncome: row.isIncome,
             }));
 

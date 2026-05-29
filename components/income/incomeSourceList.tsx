@@ -1,3 +1,5 @@
+import { formatCLP } from "@/lib/utils/currency";
+
 const ICON_COLORS = [
   "bg-teal-500", "bg-violet-500", "bg-amber-500",
   "bg-rose-500", "bg-sky-500", "bg-emerald-500",
@@ -26,7 +28,7 @@ export function IncomeSourceList({
           </div>
           <span className="flex-1 font-medium text-slate-800">{s.name}</span>
           <span className="font-semibold text-slate-900">
-            ${s.amount.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+            ${formatCLP(s.amount)}
           </span>
           <button
             type="button"

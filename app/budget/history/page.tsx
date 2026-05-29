@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getAllBudgets, deleteBudget, type BudgetListItem } from "@/lib/api/budgets";
 import Loader from "@/components/ui/Loader";
+import { formatCLP } from "@/lib/utils/currency";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -86,13 +87,13 @@ function BudgetRow({
           <div>
             <p className="text-xs text-slate-400">Ingresos</p>
             <p className="text-sm font-semibold text-slate-800">
-              ${income.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+              ${formatCLP(income)}
             </p>
           </div>
           <div>
             <p className="text-xs text-slate-400">Asignado</p>
             <p className="text-sm font-semibold text-[#0E7C8B]">
-              ${allocated.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+              ${formatCLP(allocated)}
             </p>
           </div>
           <div className="hidden sm:block">
