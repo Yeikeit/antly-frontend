@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Loader from "@/components/ui/Loader";
+import { formatCLP } from "@/lib/utils/currency";
 import {
   ResponsiveContainer,
   RadialBarChart,
@@ -36,7 +37,7 @@ const PALETTE = [
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmt(n: number) {
-  return n.toLocaleString("es-CL", { minimumFractionDigits: 0 });
+  return formatCLP(n);
 }
 
 // ── Custom tooltip shared ────────────────────────────────────────────────────

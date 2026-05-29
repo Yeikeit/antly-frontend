@@ -1,4 +1,5 @@
 import { SubcategoryInputCard } from "./SubCategoryCard";
+import { formatCLP } from "@/lib/utils/currency";
 
 type Subcategory = { id: string; name: string; budget: string };
 type Category = { id: string; name: string; budget: string; type: "EXPENSE" | "SAVING"; subcategories: Subcategory[] };
@@ -38,7 +39,7 @@ export function CategoryDetailCard({
         <div className="text-right shrink-0">
           <p className="text-xs text-slate-400">Total Asignado</p>
           <p className="text-lg font-bold text-slate-900">
-            ${totalAssigned.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+            ${formatCLP(totalAssigned)}
           </p>
         </div>
       </div>

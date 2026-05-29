@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getBudgetSummary, closeBudget, deleteBudget, type BudgetSummary } from "@/lib/api/budgets";
 import { BudgetChart } from "@/components/budget/BudgetChart";
 import Loader from "@/components/ui/Loader";
+import { formatCLP } from "@/lib/utils/currency";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -95,9 +96,11 @@ export default function BudgetDetailPage() {
   const income = Number(summary.totalIncomeAmount);
   const allocated = Number(summary.totalAllocatedAmount);
   const spent = Number(summary.totalSpent);
-  const remaining = Number(summary.totalRemaining);
+  const unallocated = income - allocated;
+  const budgetRemaining = allocated - spent;
   const allocatedPct = income > 0 ? Math.round((allocated / income) * 100) : 0;
   const spentPct = income > 0 ? Math.round((spent / income) * 100) : 0;
+  const spentVsAllocatedPct = allocated > 0 ? Math.round((spent / allocated) * 100) : 0;
 
   const parentMap = new Map<string, { name: string; colorIdx: number; subs: typeof summary.allocations }>();
   summary.allocations.forEach((a, i) => {
@@ -193,24 +196,27 @@ export default function BudgetDetailPage() {
 
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: "Ingresos", value: income, color: "text-slate-800" },
-          { label: "Asignado", value: allocated, color: "text-[#0E7C8B]" },
+          { label: "Ingresos", value: income, color: "text-slate-800", sub: null },
+          { label: "Asignado", value: allocated, color: "text-[#0E7C8B]", sub: `${allocatedPct}% del ingreso` },
+          {
+            label: "Sin asignar",
+            value: unallocated,
+            color: unallocated > 0 ? "text-amber-600" : "text-emerald-600",
+            sub: "Ingreso sin presupuestar",
+          },
           {
             label: isClosed ? "Gastado" : "Gastado hasta hoy",
             value: spent,
             color: spent > allocated ? "text-red-600" : "text-slate-800",
-          },
-          {
-            label: "Restante",
-            value: remaining,
-            color: remaining >= 0 ? "text-emerald-600" : "text-red-600",
+            sub: `Saldo: $${formatCLP(budgetRemaining)}`,
           },
         ].map((m) => (
           <div key={m.label} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
             <p className="text-xs text-slate-400">{m.label}</p>
             <p className={`mt-1 text-lg font-bold ${m.color}`}>
-              ${m.value.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+              ${formatCLP(m.value)}
             </p>
+            {m.sub && <p className="mt-0.5 text-xs text-slate-400">{m.sub}</p>}
           </div>
         ))}
       </div>
@@ -223,6 +229,24 @@ export default function BudgetDetailPage() {
         <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
           <div className="h-full rounded-full bg-[#0E7C8B] transition-all" style={{ width: `${Math.min(allocatedPct, 100)}%` }} />
         </div>
+
+        <div className="mt-4 mb-3 flex items-center justify-between">
+          <p className="text-sm font-medium text-slate-700">Gastado vs asignado</p>
+          <p className={`text-sm font-semibold ${spentVsAllocatedPct > 100 ? "text-red-600" : "text-slate-700"}`}>{spentVsAllocatedPct}%</p>
+        </div>
+        <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${spentVsAllocatedPct > 100 ? "bg-red-400" : "bg-orange-400"}`}
+            style={{ width: `${Math.min(spentVsAllocatedPct, 100)}%` }}
+          />
+        </div>
+        <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
+          <span>${formatCLP(spent)} gastados de ${formatCLP(allocated)} asignados</span>
+          <span className={budgetRemaining >= 0 ? "text-emerald-600 font-medium" : "text-red-500 font-medium"}>
+            Saldo: ${formatCLP(budgetRemaining)}
+          </span>
+        </div>
+
         {isClosed && (
           <>
             <div className="mt-4 mb-3 flex items-center justify-between">
@@ -264,14 +288,14 @@ export default function BudgetDetailPage() {
                   <div className="text-right">
                     <p className="text-xs text-slate-400">Asignado</p>
                     <p className="text-sm font-semibold text-slate-800">
-                      ${catAllocated.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+                      ${formatCLP(catAllocated)}
                     </p>
                   </div>
                   {isClosed && (
                     <div className="ml-4 text-right">
                       <p className="text-xs text-slate-400">Gastado</p>
                       <p className={`text-sm font-semibold ${catSpent > catAllocated ? "text-red-600" : "text-[#0E7C8B]"}`}>
-                        ${catSpent.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+                        ${formatCLP(catSpent)}
                       </p>
                     </div>
                   )}
@@ -288,14 +312,14 @@ export default function BudgetDetailPage() {
                           <div>
                             <p className="text-xs text-slate-400">Presupuestado</p>
                             <p className="text-sm font-medium text-slate-800">
-                              ${subAllocated.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+                              ${formatCLP(subAllocated)}
                             </p>
                           </div>
                           {isClosed && (
                             <div>
                               <p className="text-xs text-slate-400">Gastado</p>
                               <p className={`text-sm font-medium ${subSpent > subAllocated ? "text-red-600" : "text-emerald-600"}`}>
-                                ${subSpent.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+                                ${formatCLP(subSpent)}
                               </p>
                             </div>
                           )}

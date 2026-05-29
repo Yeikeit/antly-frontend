@@ -4,6 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useEditBudgetFlow } from "@/store/EditBudgetFlowContext";
 import { updateBudgetWizard } from "@/lib/api/budgets";
 import { BudgetWrapper } from "@/components/budget/BudgetWrapper";
+import { formatCLP } from "@/lib/utils/currency";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -91,7 +92,7 @@ export function EditBudgetConfirmationScreen() {
                   </div>
                   <span className="flex-1 text-sm font-medium text-slate-700">{src.name}</span>
                   <span className="text-sm font-semibold text-slate-900">
-                    ${src.amount.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+                    ${formatCLP(src.amount)}
                   </span>
                 </div>
               ))
@@ -99,7 +100,7 @@ export function EditBudgetConfirmationScreen() {
             <div className="flex justify-between bg-slate-50 px-4 py-3">
               <span className="text-sm font-semibold text-slate-600">Total ingresos</span>
               <span className="text-sm font-bold text-[#0E7C8B]">
-                ${totalIncome.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+                ${formatCLP(totalIncome)}
               </span>
             </div>
           </div>
@@ -137,7 +138,7 @@ export function EditBudgetConfirmationScreen() {
                         {cat.type === "SAVING" ? "Ahorro" : "Gasto"}
                       </span>
                       <span className="text-sm font-semibold text-slate-800">
-                        ${catTotal.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+                        ${formatCLP(catTotal)}
                       </span>
                     </div>
                     {cat.subcategories.map((sub) => (
@@ -147,9 +148,7 @@ export function EditBudgetConfirmationScreen() {
                       >
                         <span className="text-sm text-slate-600">{sub.name || "Sin nombre"}</span>
                         <span className="text-sm font-medium text-slate-800">
-                          ${(Number(sub.budget) || 0).toLocaleString("es-CL", {
-                            minimumFractionDigits: 0,
-                          })}
+                          ${formatCLP(Number(sub.budget) || 0)}
                         </span>
                       </div>
                     ))}
@@ -165,13 +164,13 @@ export function EditBudgetConfirmationScreen() {
           <div className="flex justify-between text-sm">
             <span className="text-slate-600">Total ingresos</span>
             <span className="font-semibold text-slate-800">
-              ${totalIncome.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+              ${formatCLP(totalIncome)}
             </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-slate-600">Total asignado</span>
             <span className={`font-semibold ${isOver ? "text-red-600" : "text-slate-800"}`}>
-              ${totalAllocated.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+              ${formatCLP(totalAllocated)}
             </span>
           </div>
           <div className="flex justify-between border-t border-slate-100 pt-2 text-sm">
@@ -181,9 +180,7 @@ export function EditBudgetConfirmationScreen() {
                 totalIncome - totalAllocated < 0 ? "text-red-600" : "text-emerald-600"
               }`}
             >
-              ${(totalIncome - totalAllocated).toLocaleString("es-CL", {
-                minimumFractionDigits: 2,
-              })}
+              ${formatCLP(totalIncome - totalAllocated)}
             </span>
           </div>
         </div>

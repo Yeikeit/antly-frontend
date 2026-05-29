@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useBudgetFlow } from "@/store/BudgetFlowContext";
 import { useBudget } from "@/hooks/budget/useBudget";
 import { useIncomeSources } from "@/hooks/income/useIncomeSources";
 import { getDefaultCategories, getLastBudgetStructure, createBudgetWizard, getAllBudgets } from "@/lib/api/budgets";
+import { formatCLP } from "@/lib/utils/currency";
 import { MonthYearPicker } from "@/components/ui/MonthYearPicker";
 import { CategorySidebar } from "@/components/budget/CategorySidebar";
 import { CategoryDetailCard } from "@/components/budget/CategoryDetailCard";
@@ -41,12 +41,6 @@ function ChooserStep({
 }) {
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-4">
-        <Link href="/dashboard" className="text-sm text-slate-500 hover:text-slate-900">
-          ← Volver al dashboard
-        </Link>
-      </div>
-
       <div className="mb-8 rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
         <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-400">
           ¿Para qué mes vas a crear tu presupuesto?
@@ -129,7 +123,7 @@ function IncomesStep({ onBack, onNext }: { onBack: () => void; onNext: () => voi
               <div>
                 <p className="text-xs text-slate-500">Ingreso Total Estimado</p>
                 <p className="text-2xl font-bold text-[#0E7C8B]">
-                  ${total.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+                  ${formatCLP(total)}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -212,7 +206,7 @@ function AllocationStep({ onBack, onNext }: { onBack: () => void; onNext: () => 
             <p className="text-sm text-slate-500">
               Restante:{" "}
               <span className={`font-semibold ${remaining < 0 ? "text-red-600" : "text-[#0E7C8B]"}`}>
-                ${remaining.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+                ${formatCLP(remaining)}
               </span>
             </p>
             <button
@@ -275,14 +269,14 @@ function ConfirmationStep({ onBack }: { onBack: () => void }) {
                   </div>
                   <span className="flex-1 text-sm font-medium text-slate-700">{src.name}</span>
                   <span className="text-sm font-semibold text-slate-900">
-                    ${src.amount.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+                    ${formatCLP(src.amount)}
                   </span>
                 </div>
               ))}
               <div className="flex justify-between px-4 py-3 bg-slate-50">
                 <span className="text-sm font-semibold text-slate-600">Total ingresos</span>
                 <span className="text-sm font-bold text-[#0E7C8B]">
-                  ${totalIncome.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+                  ${formatCLP(totalIncome)}
                 </span>
               </div>
             </div>
@@ -305,14 +299,14 @@ function ConfirmationStep({ onBack }: { onBack: () => void }) {
                         </div>
                         <span className="flex-1 text-sm font-semibold text-slate-800">{cat.name}</span>
                         <span className="text-sm font-semibold text-slate-700">
-                          ${catTotal.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+                          ${formatCLP(catTotal)}
                         </span>
                       </div>
                       {cat.subcategories.map((sub) => (
                         <div key={sub.id} className="flex justify-between px-6 py-2.5 border-t border-slate-100">
                           <span className="text-sm text-slate-600">{sub.name}</span>
                           <span className="text-sm font-medium text-slate-800">
-                            ${(Number(sub.budget) || 0).toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+                            ${formatCLP(Number(sub.budget) || 0)}
                           </span>
                         </div>
                       ))}

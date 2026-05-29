@@ -1,4 +1,5 @@
 import type { AllocationSummary } from "@/lib/api/budgets";
+import { formatCLP } from "@/lib/utils/currency";
 
 type CategoryHeader = {
   categoryId: string;
@@ -35,22 +36,22 @@ export default function CategoryCard({ category, subcategories, isSaving = false
           <h3 className="font-bold text-slate-800 text-base">{category.categoryName}</h3>
           {isSaving ? (
             <p className="text-xs text-slate-400 mt-0.5">
-              ${remaining.toLocaleString("es-CL")} restante
+              ${formatCLP(remaining)} restante
             </p>
           ) : overBudget ? (
             <span className="text-xs font-semibold text-red-500 mt-0.5 block">Sobre el presupuesto</span>
           ) : (
             <p className="text-xs text-slate-400 mt-0.5">
-              ${remaining.toLocaleString("es-CL")} restante
+              ${formatCLP(remaining)} restante
             </p>
           )}
         </div>
         <div className="text-right">
           <span className={`text-base font-bold ${isSaving ? "text-emerald-600" : overBudget ? "text-red-500" : "text-slate-800"}`}>
-            ${totalSpent.toLocaleString("es-CL")}
+            ${formatCLP(totalSpent)}
           </span>
           <span className="text-xs text-slate-400">
-            {" "}/ ${totalAllocated.toLocaleString("es-CL")}
+              {" "}/ ${formatCLP(totalAllocated)}
           </span>
         </div>
       </div>
@@ -73,9 +74,9 @@ export default function CategoryCard({ category, subcategories, isSaving = false
                     {sub.categoryName}
                   </span>
                   <span className={`text-sm font-medium ${subOver && !isSaving ? "text-red-500" : "text-slate-700"}`}>
-                    ${sub.spent.toLocaleString("es-CL")}
+                    ${formatCLP(sub.spent)}
                     <span className="text-slate-400 font-normal">
-                      {" "}/ ${sub.allocated.toLocaleString("es-CL")}
+                      {" "}/ ${formatCLP(sub.allocated)}
                     </span>
                   </span>
                 </div>

@@ -7,6 +7,7 @@ import { IncomeSourceForm } from "../IncomeSourceForm";
 import { AddSourceButton } from "../AddSourceButton";
 import { useIncomeSources } from "@/hooks/income/useIncomeSources";
 import { useBudgetFlow } from "@/store/BudgetFlowContext";
+import { formatCLP } from "@/lib/utils/currency";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { ReturnButton } from "@/components/ui/ReturnButton";
 import { ContinueButton } from "@/components/ui/ContinueButton";
@@ -38,7 +39,7 @@ export function IncomeScreen() {
           <div>
             <p className="text-xs text-slate-500">Ingreso Total Estimado</p>
             <p className="text-2xl font-bold text-[#0E7C8B]">
-              ${total.toLocaleString("es-CL", { minimumFractionDigits: 2 })}
+              ${formatCLP(total)}
             </p>
           </div>
           <div className="flex gap-2">

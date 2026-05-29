@@ -1,7 +1,6 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { MonthYearPicker } from '@/components/ui/MonthYearPicker';
 import { useBudgetFlow } from '@/store/BudgetFlowContext';
 import { getDefaultCategories } from '@/lib/api/budgets';
@@ -90,14 +89,7 @@ export function SettingBudgetScreen() {
           </button>
         </section>
 
-        <div className="mt-8 text-center">
-          <Link
-            href="/dashboard"
-            className="text-sm font-medium text-slate-500 hover:text-slate-900"
-          >
-            ← Volver al dashboard
-          </Link>
-        </div>
+
       </div>
     </main>
   );

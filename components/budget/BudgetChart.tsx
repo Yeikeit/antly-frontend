@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCLP } from "@/lib/utils/currency";
 import {
   PieChart,
   Pie,
@@ -61,7 +62,7 @@ export function BudgetChart({ allocations }: Props) {
     );
   }
 
-  const fmt = (v: number) => `$${v.toLocaleString("es-CL")}`;
+  const fmt = (v: number) => `$${formatCLP(v)}`;
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm h-full">
