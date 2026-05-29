@@ -118,3 +118,23 @@ export interface BudgetListItem {
 export async function getAllBudgets(): Promise<BudgetListItem[]> {
   return apiRequest<BudgetListItem[]>("/budgets");
 }
+
+export interface LastBudgetStructure {
+  year: number;
+  month: number;
+  incomeSources: { name: string; amount: number }[];
+  categories: {
+    id: string;
+    name: string;
+    type: 'EXPENSE' | 'SAVING';
+    subcategories: { id: string; name: string; budget: string }[];
+  }[];
+}
+
+export async function getLastBudgetStructure(): Promise<LastBudgetStructure | null> {
+  try {
+    return await apiRequest<LastBudgetStructure>("/budgets/last-structure");
+  } catch {
+    return null;
+  }
+}
