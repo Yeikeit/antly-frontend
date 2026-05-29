@@ -2,12 +2,20 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getActiveBudget, ActiveBudget } from "@/lib/api/budgets";
-import { getTransactions, Transaction, TransactionType } from "@/lib/api/transactions";
-import { getIncomes, type Income as BudgetIncome } from "@/lib/api/incomes";
+import { getTransactions, updateTransaction, deleteTransaction, Transaction, TransactionType } from "@/lib/api/transactions";
+import { getIncomes, updateIncome, deleteIncome, type Income as BudgetIncome } from "@/lib/api/incomes";
 
 export type TypeFilter = "ALL" | TransactionType;
 export type SortOrder = "desc" | "asc";
 export type TransactionRow = Transaction & { incomeSource?: BudgetIncome["incomeSource"] };
+
+export interface UpdatePayload {
+  amount: number;
+  description?: string;
+  transactionDate: string;
+  categoryId?: string;      
+  incomeSourceId?: string;  
+}
 
 const PAGE_SIZE = 15;
 
@@ -107,6 +115,98 @@ export function useTransactions() {
     setPage(1);
   }, []);
 
+  const deleteRow = useCallback(async (tx: TransactionRow) => {
+    if (!budget) return;
+    if (tx.type === "INCOME") {
+      await deleteIncome(budget.id, tx.id);
+    } else {
+      await deleteTransaction(budget.id, tx.id);
+    }
+    
+    try {
+      const [txs, incomes] = await Promise.all([
+        getTransactions(budget.id),
+        getIncomes(budget.id),
+      ]);
+
+      const incomeRows: TransactionRow[] = incomes.map((income) => ({
+        id: income.id,
+        userId: income.userId,
+        budgetId: income.budgetId,
+        categoryId: income.incomeSourceId,
+        amount: income.amount,
+        type: "INCOME",
+        transactionDate: income.receivedDate,
+        description: income.description ?? null,
+        createdAt: income.createdAt,
+        updatedAt: income.updatedAt,
+        incomeSource: income.incomeSource,
+      }));
+
+      setAllTransactions([
+        ...txs,
+        ...incomeRows,
+      ].sort((a, b) => {
+        const aTime = new Date(a.transactionDate).getTime();
+        const bTime = new Date(b.transactionDate).getTime();
+        return bTime - aTime;
+      }));
+    } catch (error) {
+      console.error("Error recargando transacciones:", error);
+    }
+  }, [budget]);
+
+  const updateRow = useCallback(async (tx: TransactionRow, payload: UpdatePayload) => {
+    if (!budget) return;
+    if (tx.type === "INCOME") {
+      await updateIncome(budget.id, tx.id, {
+        incomeSourceId: payload.incomeSourceId,
+        amount: payload.amount,
+        receivedDate: payload.transactionDate,
+        description: payload.description,
+      });
+    } else {
+      await updateTransaction(budget.id, tx.id, {
+        categoryId: payload.categoryId,
+        amount: payload.amount,
+        transactionDate: payload.transactionDate,
+        description: payload.description,
+      });
+    }
+    
+    try {
+      const [txs, incomes] = await Promise.all([
+        getTransactions(budget.id),
+        getIncomes(budget.id),
+      ]);
+
+      const incomeRows: TransactionRow[] = incomes.map((income) => ({
+        id: income.id,
+        userId: income.userId,
+        budgetId: income.budgetId,
+        categoryId: income.incomeSourceId,
+        amount: income.amount,
+        type: "INCOME",
+        transactionDate: income.receivedDate,
+        description: income.description ?? null,
+        createdAt: income.createdAt,
+        updatedAt: income.updatedAt,
+        incomeSource: income.incomeSource,
+      }));
+
+      setAllTransactions([
+        ...txs,
+        ...incomeRows,
+      ].sort((a, b) => {
+        const aTime = new Date(a.transactionDate).getTime();
+        const bTime = new Date(b.transactionDate).getTime();
+        return bTime - aTime;
+      }));
+    } catch (error) {
+      console.error("Error recargando transacciones:", error);
+    }
+  }, [budget]);
+
   const startEntry = sorted.length === 0 ? 0 : start + 1;
   const endEntry = Math.min(start + PAGE_SIZE, sorted.length);
 
@@ -126,5 +226,7 @@ export function useTransactions() {
     totalPages,
     startEntry,
     endEntry,
+    deleteRow,
+    updateRow,
   };
 }

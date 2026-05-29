@@ -33,6 +33,13 @@ export interface CreateIncomeDto {
   description?: string;
 }
 
+export interface UpdateIncomeDto {
+  incomeSourceId?: string;
+  amount?: number;
+  receivedDate?: string;
+  description?: string;
+}
+
 
 
 export async function getIncomeSources(): Promise<IncomeSource[]> {
@@ -65,5 +72,25 @@ export async function createIncome(
 export async function getIncomes(budgetId: string): Promise<Income[]> {
   return apiRequest<Income[]>(`/budgets/${budgetId}/incomes`, {
     method: "GET",
+  });
+}
+
+export async function updateIncome(
+  budgetId: string,
+  id: string,
+  dto: UpdateIncomeDto
+): Promise<Income> {
+  return apiRequest<Income>(`/budgets/${budgetId}/incomes/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(dto),
+  });
+}
+
+export async function deleteIncome(
+  budgetId: string,
+  id: string
+): Promise<void> {
+  return apiRequest<void>(`/budgets/${budgetId}/incomes/${id}`, {
+    method: "DELETE",
   });
 }
