@@ -25,8 +25,11 @@ export function useLogin() {
 
             router.push(redirectTo ?? '/dashboard');
         } catch (err) {
-            setError('No se pudo iniciar sesión');
-            throw err;
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('No se pudo iniciar sesión');
+            }
         } finally {
             setIsSubmitting(false);
         }

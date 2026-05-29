@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaRegChartBar, FaWallet, FaExchangeAlt, FaCog, FaPlus, FaChevronLeft, FaChevronRight, FaChartLine, FaSignOutAlt } from "react-icons/fa";
+import { FaRegChartBar, FaWallet, FaExchangeAlt, FaCog, FaPlus, FaChevronLeft, FaChevronRight, FaChartLine, FaSignOutAlt, FaHistory } from "react-icons/fa";
 import { IconType } from "react-icons";
 
 export type NavItem = {
@@ -14,6 +14,7 @@ export type NavItem = {
 const DEFAULT_NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: FaRegChartBar },
   { label: "Presupuesto", href: "/budget", icon: FaWallet },
+  { label: "Historial", href: "/budget/history", icon: FaHistory },
   { label: "Transacciones", href: "/transactions", icon: FaExchangeAlt },
   { label: "Estadísticas", href: "/statistics", icon: FaChartLine },
   { label: "Configuración", href: "/settings", icon: FaCog },
@@ -38,12 +39,16 @@ export default function SideBar({
 }: SideBarProps) {
   const pathname = usePathname();
 
-  const isActive = (href: string) =>
-    pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+  const isActive = (href: string) => {
+    if (pathname === href) return true;
+    if (href === "/budget") return pathname === "/budget" || pathname.startsWith("/budget/") && !pathname.startsWith("/budget/history");
+    if (href === "/dashboard") return pathname === "/dashboard";
+    return pathname.startsWith(href);
+  };
 
   return (
     <>
-      {/* Mobile overlay */}
+    
       {open && (
         <div
           className="fixed inset-0 bg-black/30 z-30 md:hidden"
@@ -62,7 +67,7 @@ export default function SideBar({
         `}
         style={{ width: open ? "256px" : undefined }}
       >
-        {/* Header: logo + collapse toggle */}
+        
         <div className={`p-4 pt-16 md:pt-4 ${collapsed ? "md:px-3" : ""}`}>
           <div className={`mb-8 flex items-center ${collapsed ? "md:justify-center" : "gap-2"}`}>
             <span className="text-2xl text-[#0E7C8B] flex-shrink-0">
@@ -71,7 +76,7 @@ export default function SideBar({
             {!collapsed && (
               <span className="font-bold text-lg text-[#0E7C8B] whitespace-nowrap">Antly</span>
             )}
-            {/* Collapse toggle — desktop only */}
+            
             <button
               onClick={onToggleCollapse}
               className={`
@@ -85,7 +90,7 @@ export default function SideBar({
             </button>
           </div>
 
-          {/* Navigation items */}
+          
           <nav className="flex flex-col gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -110,7 +115,7 @@ export default function SideBar({
                   {!collapsed && (
                     <span className="whitespace-nowrap">{item.label}</span>
                   )}
-                  {/* Mobile always shows label */}
+                  
                   {collapsed && (
                     <span className="whitespace-nowrap md:hidden">{item.label}</span>
                   )}
@@ -120,7 +125,7 @@ export default function SideBar({
           </nav>
         </div>
 
-        {/* Footer CTA */}
+       
         <div className={`p-4 flex flex-col gap-2 ${collapsed ? "md:px-3" : ""}`}>
           <Link
             href="/transactions/new"

@@ -29,10 +29,11 @@ export function useRegister() {
             } catch (err) {
                 if (err instanceof ApiError && err.status === 409) {
                     setError('Este correo ya está registrado. ¿Ya tienes cuenta?');
+                } else if (err instanceof ApiError) {
+                    setError(err.message);
                 } else {
                     setError('No se pudo crear la cuenta');
                 }
-                throw err;
             } finally {
                 setIsSubmitting(false);
             }
