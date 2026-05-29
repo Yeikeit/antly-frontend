@@ -1,0 +1,171 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { getAllBudgets, type BudgetListItem } from "@/lib/api/budgets";
+import Loader from "@/components/ui/Loader";
+
+const MONTHS = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
+
+function StatusBadge({ status }: { status: string }) {
+  if (status === "ACTIVE") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        Activo
+      </span>
+    );
+  }
+  if (status === "CLOSED") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-semibold text-slate-500">
+        <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+        Cerrado
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center rounded-full border border-amber-100 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-600">
+      Borrador
+    </span>
+  );
+}
+
+function BudgetRow({ budget }: { budget: BudgetListItem }) {
+  const income = Number(budget.totalIncomeAmount);
+  const allocated = Number(budget.totalAllocatedAmount);
+  const allocatedPct = income > 0 ? Math.round((allocated / income) * 100) : 0;
+  const isActive = budget.status === "ACTIVE";
+
+  return (
+    <Link
+      href={`/budget/${budget.id}`}
+      className={`group flex items-center gap-4 rounded-2xl border bg-white px-5 py-4 shadow-sm transition hover:shadow-md hover:border-[#0E7C8B]/30 ${
+        isActive ? "border-[#0E7C8B]/40 ring-1 ring-[#0E7C8B]/20" : "border-slate-100"
+      }`}
+    >
+      <div className="w-28 shrink-0">
+        <p className="text-base font-semibold text-slate-900">
+          {MONTHS[budget.month - 1]}
+        </p>
+        <p className="text-sm text-slate-400">{budget.year}</p>
+      </div>
+
+      <div className="w-24 shrink-0">
+        <StatusBadge status={budget.status} />
+      </div>
+
+      <div className="flex flex-1 gap-6">
+        <div>
+          <p className="text-xs text-slate-400">Ingresos</p>
+          <p className="text-sm font-semibold text-slate-800">
+            ${income.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-slate-400">Asignado</p>
+          <p className="text-sm font-semibold text-[#0E7C8B]">
+            ${allocated.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+          </p>
+        </div>
+        <div className="hidden sm:block">
+          <p className="text-xs text-slate-400">Ejecución</p>
+          <p className="text-sm font-semibold text-slate-700">{allocatedPct}%</p>
+        </div>
+      </div>
+
+      <span className="shrink-0 text-slate-300 transition group-hover:text-[#0E7C8B]">›</span>
+    </Link>
+  );
+}
+
+export default function BudgetHistoryPage() {
+  const [budgets, setBudgets] = useState<BudgetListItem[] | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+
+  useEffect(() => {
+    getAllBudgets()
+      .then((list) => {
+        const sorted = [...list].sort((a, b) =>
+          a.year !== b.year ? b.year - a.year : b.month - a.month
+        );
+        setBudgets(sorted);
+        
+        if (sorted.length > 0) setSelectedYear(sorted[0].year);
+      })
+      .catch(() => setBudgets([]));
+  }, []);
+
+  const years = budgets
+    ? [...new Set(budgets.map((b) => b.year))].sort((a, b) => b - a)
+    : [];
+
+  const filtered = budgets
+    ? selectedYear === null
+      ? budgets
+      : budgets.filter((b) => b.year === selectedYear)
+    : [];
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Historial de presupuestos</h1>
+          <p className="mt-1 text-sm text-slate-500">Todos tus presupuestos ordenados del más reciente al más antiguo.</p>
+        </div>
+        <Link
+          href="/budget/new"
+          className="rounded-xl bg-[#0E7C8B] px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 transition"
+        >
+          + Nuevo
+        </Link>
+      </div>
+
+     
+      {years.length > 1 && (
+        <div className="mb-5 flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setSelectedYear(null)}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition border ${
+              selectedYear === null
+                ? "bg-[#0E7C8B] text-white border-[#0E7C8B]"
+                : "bg-white text-slate-600 border-slate-200 hover:border-[#0E7C8B]/40 hover:text-[#0E7C8B]"
+            }`}
+          >
+            Todos
+          </button>
+          {years.map((y) => (
+            <button
+              key={y}
+              onClick={() => setSelectedYear(y)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition border ${
+                selectedYear === y
+                  ? "bg-[#0E7C8B] text-white border-[#0E7C8B]"
+                  : "bg-white text-slate-600 border-slate-200 hover:border-[#0E7C8B]/40 hover:text-[#0E7C8B]"
+              }`}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {budgets === null ? (
+        <Loader />
+      ) : filtered.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center text-sm text-slate-400">
+          {budgets.length === 0 ? "Aún no tienes presupuestos registrados." : "Sin presupuestos para este año."}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {filtered.map((b) => (
+            <BudgetRow key={b.id} budget={b} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
