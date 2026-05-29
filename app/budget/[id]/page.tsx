@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { getBudgetSummary, type BudgetSummary } from "@/lib/api/budgets";
+import { getBudgetSummary, closeBudget, deleteBudget, type BudgetSummary } from "@/lib/api/budgets";
 import { BudgetChart } from "@/components/budget/BudgetChart";
 import Loader from "@/components/ui/Loader";
 
@@ -34,6 +34,13 @@ export default function BudgetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [summary, setSummary] = useState<BudgetSummary | null | undefined>(undefined);
+  const [showCloseModal, setShowCloseModal] = useState(false);
+  const [closeReason, setCloseReason] = useState("");
+  const [closing, setClosing] = useState(false);
+  const [closeError, setCloseError] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const reasonRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -41,6 +48,34 @@ export default function BudgetDetailPage() {
       .then(setSummary)
       .catch(() => setSummary(null));
   }, [id]);
+
+  async function handleClose() {
+    if (!id || !closeReason.trim()) return;
+    setClosing(true);
+    setCloseError(null);
+    try {
+      await closeBudget(id, closeReason.trim());
+      setShowCloseModal(false);
+      const updated = await getBudgetSummary(id);
+      setSummary(updated);
+    } catch {
+      setCloseError("No se pudo cerrar el presupuesto. Intenta nuevamente.");
+    } finally {
+      setClosing(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!id) return;
+    setDeleting(true);
+    try {
+      await deleteBudget(id);
+      router.replace("/budget/history");
+    } catch {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  }
 
   if (summary === undefined) return <Loader fullPage />;
 
@@ -100,13 +135,50 @@ export default function BudgetDetailPage() {
             >
               ✏️ Editar presupuesto
             </button>
+            <button
+              type="button"
+              onClick={() => { setCloseReason(""); setCloseError(null); setShowCloseModal(true); }}
+              className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-semibold text-red-500 hover:bg-red-50 transition"
+            >
+              🔒 Cerrar mes
+            </button>
           </div>
         )}
         {isClosed && (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-500">
-            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-            Cerrado
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-500">
+              <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+              Cerrado
+            </span>
+            {showDeleteConfirm ? (
+              <>
+                <span className="text-xs text-red-600 font-medium">¿Eliminar definitivamente?</span>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="inline-flex items-center gap-1 rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white hover:bg-red-600 transition disabled:opacity-60"
+                >
+                  {deleting ? "Eliminando…" : "Sí, eliminar"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="inline-flex items-center rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 transition"
+                >
+                  Cancelar
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-semibold text-red-500 hover:bg-red-50 transition"
+              >
+                🗑 Eliminar
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -238,6 +310,54 @@ export default function BudgetDetailPage() {
           })}
         </div>
       </div>
+
+      {/* Modal de cierre de presupuesto */}
+      {showCloseModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-base font-semibold text-slate-900">Cerrar presupuesto</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Esta acción cierra el mes y deja el presupuesto en modo solo lectura. Deberás crear uno nuevo manualmente.
+            </p>
+            <div className="mt-4">
+              <label htmlFor="close-reason" className="block text-xs font-medium text-slate-700 mb-1">
+                Motivo de cierre <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="close-reason"
+                ref={reasonRef}
+                type="text"
+                value={closeReason}
+                onChange={(e) => setCloseReason(e.target.value)}
+                placeholder="Ej: Fin del mes de mayo"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#0E7C8B] focus:outline-none focus:ring-1 focus:ring-[#0E7C8B]"
+                autoFocus
+              />
+            </div>
+            {closeError && (
+              <p className="mt-2 text-xs text-red-500">{closeError}</p>
+            )}
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowCloseModal(false)}
+                disabled={closing}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleClose}
+                disabled={closing || !closeReason.trim()}
+                className="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {closing ? "Cerrando…" : "Confirmar cierre"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

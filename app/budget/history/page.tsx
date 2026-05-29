@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getAllBudgets, type BudgetListItem } from "@/lib/api/budgets";
+import { getAllBudgets, deleteBudget, type BudgetListItem } from "@/lib/api/budgets";
 import Loader from "@/components/ui/Loader";
 
 const MONTHS = [
@@ -34,51 +34,110 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function BudgetRow({ budget }: { budget: BudgetListItem }) {
+function BudgetRow({
+  budget,
+  onDelete,
+}: {
+  budget: BudgetListItem;
+  onDelete: (id: string) => void;
+}) {
   const income = Number(budget.totalIncomeAmount);
   const allocated = Number(budget.totalAllocatedAmount);
   const allocatedPct = income > 0 ? Math.round((allocated / income) * 100) : 0;
   const isActive = budget.status === "ACTIVE";
+  const isClosed = budget.status === "CLOSED";
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirming) { setConfirming(true); return; }
+    setDeleting(true);
+    try {
+      await deleteBudget(budget.id);
+      onDelete(budget.id);
+    } catch {
+      setDeleting(false);
+      setConfirming(false);
+    }
+  }
 
   return (
-    <Link
-      href={`/budget/${budget.id}`}
-      className={`group flex items-center gap-4 rounded-2xl border bg-white px-5 py-4 shadow-sm transition hover:shadow-md hover:border-[#0E7C8B]/30 ${
-        isActive ? "border-[#0E7C8B]/40 ring-1 ring-[#0E7C8B]/20" : "border-slate-100"
-      }`}
-    >
-      <div className="w-28 shrink-0">
-        <p className="text-base font-semibold text-slate-900">
-          {MONTHS[budget.month - 1]}
-        </p>
-        <p className="text-sm text-slate-400">{budget.year}</p>
-      </div>
-
-      <div className="w-24 shrink-0">
-        <StatusBadge status={budget.status} />
-      </div>
-
-      <div className="flex flex-1 gap-6">
-        <div>
-          <p className="text-xs text-slate-400">Ingresos</p>
-          <p className="text-sm font-semibold text-slate-800">
-            ${income.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+    <div className="relative">
+      <Link
+        href={`/budget/${budget.id}`}
+        className={`group flex items-center gap-4 rounded-2xl border bg-white px-5 py-4 shadow-sm transition hover:shadow-md hover:border-[#0E7C8B]/30 ${
+          isActive ? "border-[#0E7C8B]/40 ring-1 ring-[#0E7C8B]/20" : "border-slate-100"
+        }`}
+      >
+        <div className="w-28 shrink-0">
+          <p className="text-base font-semibold text-slate-900">
+            {MONTHS[budget.month - 1]}
           </p>
+          <p className="text-sm text-slate-400">{budget.year}</p>
         </div>
-        <div>
-          <p className="text-xs text-slate-400">Asignado</p>
-          <p className="text-sm font-semibold text-[#0E7C8B]">
-            ${allocated.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
-          </p>
-        </div>
-        <div className="hidden sm:block">
-          <p className="text-xs text-slate-400">Ejecución</p>
-          <p className="text-sm font-semibold text-slate-700">{allocatedPct}%</p>
-        </div>
-      </div>
 
-      <span className="shrink-0 text-slate-300 transition group-hover:text-[#0E7C8B]">›</span>
-    </Link>
+        <div className="w-24 shrink-0">
+          <StatusBadge status={budget.status} />
+        </div>
+
+        <div className="flex flex-1 gap-6">
+          <div>
+            <p className="text-xs text-slate-400">Ingresos</p>
+            <p className="text-sm font-semibold text-slate-800">
+              ${income.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400">Asignado</p>
+            <p className="text-sm font-semibold text-[#0E7C8B]">
+              ${allocated.toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+            </p>
+          </div>
+          <div className="hidden sm:block">
+            <p className="text-xs text-slate-400">Ejecución</p>
+            <p className="text-sm font-semibold text-slate-700">{allocatedPct}%</p>
+          </div>
+        </div>
+
+        <span className="shrink-0 text-slate-300 transition group-hover:text-[#0E7C8B]">›</span>
+      </Link>
+
+      {isClosed && (
+        <div className="absolute right-12 top-1/2 -translate-y-1/2 flex items-center gap-2">
+          {confirming ? (
+            <>
+              <span className="text-xs text-red-600 font-medium">¿Eliminar?</span>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="rounded-lg bg-red-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-red-600 disabled:opacity-60"
+              >
+                {deleting ? "…" : "Sí"}
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); setConfirming(false); }}
+                className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
+              >
+                No
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={handleDelete}
+              title="Eliminar presupuesto"
+              className="rounded-lg p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 transition"
+            >
+              🗑
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -98,6 +157,10 @@ export default function BudgetHistoryPage() {
       })
       .catch(() => setBudgets([]));
   }, []);
+
+  function handleDelete(id: string) {
+    setBudgets((prev) => prev ? prev.filter((b) => b.id !== id) : prev);
+  }
 
   const years = budgets
     ? [...new Set(budgets.map((b) => b.year))].sort((a, b) => b - a)
@@ -162,7 +225,7 @@ export default function BudgetHistoryPage() {
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map((b) => (
-            <BudgetRow key={b.id} budget={b} />
+            <BudgetRow key={b.id} budget={b} onDelete={handleDelete} />
           ))}
         </div>
       )}

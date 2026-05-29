@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getActiveBudget, getAllBudgets, type ActiveBudget } from '@/lib/api/budgets';
+import { getActiveBudget, getAllBudgets, reopenBudget, type ActiveBudget, type BudgetListItem } from '@/lib/api/budgets';
 import { getBudgetPreferences } from '@/lib/api/users';
 import Link from 'next/link';
 import { useBudgetSummary } from "@/hooks/budget/useBudgetSummary";
@@ -16,12 +16,14 @@ const MONTHS = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ];
 
-type NoBudgetState = 'loading' | 'first-time' | 'manual-needed' | 'automation-pending';
+type NoBudgetState = 'loading' | 'first-time' | 'manual-needed' | 'automation-pending' | 'reopen-available';
 
 export default function DashboardPage() {
   const router = useRouter();
   const [budget, setBudget] = useState<ActiveBudget | null | undefined>(undefined);
   const [noBudgetState, setNoBudgetState] = useState<NoBudgetState>('loading');
+  const [closedBudget, setClosedBudget] = useState<BudgetListItem | null>(null);
+  const [reopening, setReopening] = useState(false);
   const [automationOn, setAutomationOn] = useState<boolean>(true);
   const { summary, loading: loadingSummary, error } = useBudgetSummary(budget?.id);
 
@@ -40,10 +42,33 @@ export default function DashboardPage() {
         router.replace('/settingBudget');
         return;
       }
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+      const closedThisMonth = history.find(
+        (bud) => bud.year === currentYear && bud.month === currentMonth && bud.status === 'CLOSED'
+      ) ?? null;
       setBudget(null);
+      if (closedThisMonth) {
+        setClosedBudget(closedThisMonth);
+        setNoBudgetState('reopen-available');
+        return;
+      }
       setNoBudgetState(automation ? 'automation-pending' : 'manual-needed');
     });
   }, [router]);
+
+  async function handleReopen() {
+    if (!closedBudget) return;
+    setReopening(true);
+    try {
+      await reopenBudget(closedBudget.id);
+      router.refresh();
+      window.location.reload();
+    } catch {
+      setReopening(false);
+    }
+  }
 
 
   if (budget === undefined) {
@@ -54,6 +79,31 @@ export default function DashboardPage() {
     return (
       <div className="max-w-4xl mx-auto flex items-center justify-center min-h-[60vh]">
         {noBudgetState === 'loading' && <Loader />}
+
+        {noBudgetState === 'reopen-available' && (
+          <div className="text-center bg-white rounded-2xl border border-slate-100 p-10 shadow-sm max-w-md w-full">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-500 text-2xl">
+              🔓
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Presupuesto cerrado este mes</h2>
+            <p className="text-sm text-slate-500 mb-6">
+              Cerraste el presupuesto de {closedBudget && MONTHS[closedBudget.month - 1]} antes de que terminara el mes. Puedes reabrirlo para seguir registrando gastos.
+            </p>
+            <button
+              type="button"
+              onClick={handleReopen}
+              disabled={reopening}
+              className="inline-block rounded-xl bg-[#0E7C8B] px-6 py-3 text-sm font-semibold text-white hover:bg-teal-700 transition disabled:opacity-60"
+            >
+              {reopening ? 'Reabriendo…' : 'Reabrir presupuesto'}
+            </button>
+            <div className="mt-4">
+              <Link href="/budget/new" className="text-sm font-medium text-slate-400 hover:text-slate-600">
+                Crear uno nuevo de todas formas →
+              </Link>
+            </div>
+          </div>
+        )}
 
         {noBudgetState === 'automation-pending' && (
           <div className="text-center bg-white rounded-2xl border border-slate-100 p-10 shadow-sm max-w-md w-full">
