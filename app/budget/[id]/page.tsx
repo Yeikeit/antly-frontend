@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getBudgetSummary, type BudgetSummary } from "@/lib/api/budgets";
 import { BudgetChart } from "@/components/budget/BudgetChart";
@@ -32,6 +32,7 @@ function ExecutionBar({ spent, allocated }: { spent: number; allocated: number }
 
 export default function BudgetDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [summary, setSummary] = useState<BudgetSummary | null | undefined>(undefined);
 
   useEffect(() => {
@@ -87,10 +88,19 @@ export default function BudgetDetailPage() {
           <p className="mt-0.5 text-sm text-slate-500">Detalle del presupuesto</p>
         </div>
         {isActive && (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Activo
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Activo
+            </span>
+            <button
+              type="button"
+              onClick={() => router.push(`/budget/${id}/edit/incomes`)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#0E7C8B] bg-white px-3 py-1 text-xs font-semibold text-[#0E7C8B] hover:bg-teal-50 transition"
+            >
+              ✏️ Editar presupuesto
+            </button>
+          </div>
         )}
         {isClosed && (
           <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-500">
