@@ -39,6 +39,7 @@ export default function TransactionsPage() {
 	const {
 		budget,
 		transactions,
+		allTransactions,
 		totalFiltered,
 		loading,
 		typeFilter,
@@ -73,6 +74,15 @@ export default function TransactionsPage() {
 			setIncomeSources(sources.filter(s => s.isActive));
 		}).catch(console.error);
 	}, []);
+
+	// Total gastado: suma de todos los gastos del presupuesto activo
+	const totalSpent = React.useMemo(
+		() => allTransactions
+			.filter((tx) => tx.type === "EXPENSE")
+			.reduce((acc, tx) => acc + Number(tx.amount), 0),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[allTransactions]
+	);
 
 	// Limpiar filtros locales cuando cambia el tipo
 	useEffect(() => {
@@ -146,18 +156,18 @@ export default function TransactionsPage() {
 	return (
 		<>
 		<div className="min-h-screen bg-slate-50">
-			<div className="max-w-5xl mx-auto p-6">
+			<div className="max-w-5xl mx-auto p-4 md:p-6">
 				{/* Header y balance */}
-				<div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+				<div className="flex flex-col md:flex-row md:items-center md:justify-between mb-5 gap-3">
 					<div>
-						<h1 className="text-3xl font-bold mb-1 text-slate-900">Transacciones</h1>
-						<p className="text-slate-500">Revisa y gestiona tu actividad financiera.</p>
+						<h1 className="text-2xl md:text-3xl font-bold mb-0.5 text-slate-900">Transacciones</h1>
+						<p className="text-sm text-slate-500">Revisa y gestiona tu actividad financiera.</p>
 					</div>
 					<Link
 						href="/transactions/new"
-						className="inline-flex items-center gap-2 bg-[#0E7C8B] hover:bg-[#0a6470] text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-colors"
+						className="inline-flex items-center justify-center gap-2 bg-[#0E7C8B] hover:bg-[#0a6470] text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-colors w-full md:w-auto"
 					>
-						<svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+						<svg width="18" height="18" fill="none" viewBox="0 0 24 24">
 							<path fill="currentColor" d="M12 4a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2h-6v6a1 1 0 1 1-2 0v-6H5a1 1 0 1 1 0-2h6V5a1 1 0 0 1 1-1Z"/>
 						</svg>
 						Nueva transacción
@@ -165,41 +175,41 @@ export default function TransactionsPage() {
 				</div>
 
 				{/* Resumen de totales */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-					<div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
-						<div className="flex items-center gap-3">
-							<div className="bg-emerald-50 text-emerald-600 rounded-full p-2">
+				<div className="grid grid-cols-3 gap-3 mb-5">
+					<div className="bg-white rounded-xl border border-slate-100 p-3 md:p-4 shadow-sm">
+						<div className="flex flex-col md:flex-row md:items-center gap-2">
+							<div className="hidden md:flex bg-emerald-50 text-emerald-600 rounded-full p-2">
 								<svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21a1 1 0 0 1-1-1V7.83l-4.59 4.58a1 1 0 0 1-1.41-1.41l6.3-6.3a1 1 0 0 1 1.41 0l6.3 6.3a1 1 0 0 1-1.41 1.41L13 7.83V20a1 1 0 0 1-1 1Z"/></svg>
 							</div>
 							<div>
-								<div className="text-xs text-slate-500 font-medium">Ingresos totales</div>
-								<div className="text-xl font-bold text-emerald-600">
+								<div className="text-xs text-slate-500 font-medium">Ingresos</div>
+								<div className="text-base md:text-xl font-bold text-emerald-600">
 									${formatCLP(budget.totalIncomeAmount)}
 								</div>
 							</div>
 						</div>
 					</div>
-					<div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
-						<div className="flex items-center gap-3">
-							<div className="bg-red-50 text-red-600 rounded-full p-2">
+					<div className="bg-white rounded-xl border border-slate-100 p-3 md:p-4 shadow-sm">
+						<div className="flex flex-col md:flex-row md:items-center gap-2">
+							<div className="hidden md:flex bg-red-50 text-red-600 rounded-full p-2">
 								<svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v12.17l4.59-4.58a1 1 0 0 1 1.41 1.41l-6.3 6.3a1 1 0 0 1-1.41 0l-6.3-6.3a1 1 0 0 1 1.41-1.41L11 16.17V4a1 1 0 0 1 1-1Z"/></svg>
 							</div>
 							<div>
-								<div className="text-xs text-slate-500 font-medium">Presupuesto asignado</div>
-								<div className="text-xl font-bold text-red-600">
-									${formatCLP(budget.totalAllocatedAmount)}
+								<div className="text-xs text-slate-500 font-medium">Gastado</div>
+								<div className="text-base md:text-xl font-bold text-red-600">
+									${formatCLP(totalSpent)}
 								</div>
 							</div>
 						</div>
 					</div>
-					<div className="bg-white rounded-xl border border-slate-100 p-4 shadow-sm">
-						<div className="flex items-center gap-3">
-							<div className="bg-[#0E7C8B]/10 text-[#0E7C8B] rounded-full p-2">
+					<div className="bg-white rounded-xl border border-slate-100 p-3 md:p-4 shadow-sm">
+						<div className="flex flex-col md:flex-row md:items-center gap-2">
+							<div className="hidden md:flex bg-[#0E7C8B]/10 text-[#0E7C8B] rounded-full p-2">
 								<svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M3 6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v2H3V6Zm18 4v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-8h18Zm-9 2a1 1 0 0 0-1 1v2H8a1 1 0 1 0 0 2h2v2a1 1 0 1 0 2 0v-2h2a1 1 0 1 0 0-2h-2v-2a1 1 0 0 0-1-1Z"/></svg>
 							</div>
 							<div>
 								<div className="text-xs text-slate-500 font-medium">Sin asignar</div>
-								<div className="text-xl font-bold text-[#0E7C8B]">
+								<div className="text-base md:text-xl font-bold text-[#0E7C8B]">
 									${formatCLP(budget.totalIncomeAmount - budget.totalAllocatedAmount)}
 								</div>
 							</div>
@@ -208,13 +218,13 @@ export default function TransactionsPage() {
 				</div>
 
 				{/* Filtros y tabs */}
-				<div className="flex flex-wrap items-center gap-3 mb-6">
+				<div className="flex flex-wrap items-center gap-2 mb-5">
 					{/* Mes activo */}
 					<div className="flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white text-slate-600 font-medium">
-						<svg width="16" height="16" fill="none" viewBox="0 0 24 24" className="text-slate-400">
+						<svg width="14" height="14" fill="none" viewBox="0 0 24 24" className="text-slate-400">
 							<path fill="currentColor" d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h1V3a1 1 0 0 1 1-1Zm13 8H4v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9Z"/>
 						</svg>
-						{currentMonth}
+						<span className="text-xs md:text-sm">{currentMonth}</span>
 					</div>
 
 					{/* Filtro jerárquico por categoría/fuente */}
@@ -334,6 +344,8 @@ export default function TransactionsPage() {
 
 				{/* Tabla de transacciones */}
 				<section>
+					{/* Vista desktop: tabla */}
+					<div className="hidden md:block">
 					<table className="w-full bg-white rounded-xl shadow overflow-hidden border border-slate-100">
 						<thead>
 							<tr className="bg-slate-50 text-slate-500 text-xs uppercase">
@@ -368,10 +380,7 @@ export default function TransactionsPage() {
 												</svg>
 											</div>
 											<p className="text-slate-400">No hay transacciones que coincidan con los filtros</p>
-											<Link
-												href="/transactions/new"
-												className="text-sm text-[#0E7C8B] hover:underline font-medium"
-											>
+											<Link href="/transactions/new" className="text-sm text-[#0E7C8B] hover:underline font-medium">
 												Agregar tu primera transacción
 											</Link>
 										</div>
@@ -393,46 +402,24 @@ export default function TransactionsPage() {
 											</div>
 										</td>
 										<td className="p-4">
-											<span className={`inline-block px-3 py-1.5 rounded-lg text-xs font-semibold ${
-												tx.type === "INCOME" 
-													? "bg-emerald-50 text-emerald-700"
-													: "bg-slate-100 text-slate-700"
-											}`}>
-												{tx.type === "INCOME"
-													? tx.incomeSource?.name ?? "Fuente de ingreso"
-													: categoryMap[tx.categoryId] ?? tx.categoryId}
+											<span className={`inline-block px-3 py-1.5 rounded-lg text-xs font-semibold ${tx.type === "INCOME" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"}`}>
+												{tx.type === "INCOME" ? tx.incomeSource?.name ?? "Fuente de ingreso" : categoryMap[tx.categoryId] ?? tx.categoryId}
 											</span>
 										</td>
 										<td className="p-4 text-slate-600 text-sm">
 											<div className="font-medium">{formatLocalDate(tx.transactionDate)}</div>
-											<div className="text-xs text-slate-400" suppressHydrationWarning>
-												{mounted ? formatTime(tx.createdAt) : ""}
-											</div>
+											<div className="text-xs text-slate-400" suppressHydrationWarning>{mounted ? formatTime(tx.createdAt) : ""}</div>
 										</td>
-										<td className={`p-4 text-right font-bold text-lg ${
-											tx.type === "INCOME" ? "text-emerald-600" : "text-red-600"
-										}`}>
+										<td className={`p-4 text-right font-bold text-lg ${tx.type === "INCOME" ? "text-emerald-600" : "text-red-600"}`}>
 											{tx.type === "INCOME" ? "+" : "-"}${formatCLP(Math.abs(tx.amount))}
 										</td>
 										<td className="p-4 text-right">
 											<div className="flex items-center justify-end gap-2">
-												<button
-													onClick={() => setEditTx(tx)}
-													className="p-2 text-slate-400 hover:text-[#0E7C8B] hover:bg-[#0E7C8B]/10 rounded-lg transition-colors"
-													title="Editar"
-												>
-													<svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-														<path fill="currentColor" d="M16.862 3.487a2.5 2.5 0 0 1 3.536 0l.115.115a2.5 2.5 0 0 1 0 3.536L9.06 18.591a1 1 0 0 1-.465.263l-5.5 1.375a1 1 0 0 1-1.213-1.212l1.374-5.5a1 1 0 0 1 .263-.465L16.862 3.487Z"/>
-													</svg>
+												<button onClick={() => setEditTx(tx)} className="p-2 text-slate-400 hover:text-[#0E7C8B] hover:bg-[#0E7C8B]/10 rounded-lg transition-colors" title="Editar">
+													<svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M16.862 3.487a2.5 2.5 0 0 1 3.536 0l.115.115a2.5 2.5 0 0 1 0 3.536L9.06 18.591a1 1 0 0 1-.465.263l-5.5 1.375a1 1 0 0 1-1.213-1.212l1.374-5.5a1 1 0 0 1 .263-.465L16.862 3.487Z"/></svg>
 												</button>
-												<button
-													onClick={() => setDeleteTx(tx)}
-													className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-													title="Eliminar"
-												>
-													<svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-														<path fill="currentColor" d="M10 2a2 2 0 0 0-2 2H4a1 1 0 0 0 0 2h1v13a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V6h1a1 1 0 1 0 0-2h-4a2 2 0 0 0-2-2h-4ZM9 6h6v13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V6h2Zm1 3a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Z"/>
-													</svg>
+												<button onClick={() => setDeleteTx(tx)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+													<svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M10 2a2 2 0 0 0-2 2H4a1 1 0 0 0 0 2h1v13a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V6h1a1 1 0 1 0 0-2h-4a2 2 0 0 0-2-2h-4ZM9 6h6v13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V6h2Zm1 3a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Z"/></svg>
 												</button>
 											</div>
 										</td>
@@ -441,11 +428,66 @@ export default function TransactionsPage() {
 							)}
 						</tbody>
 					</table>
+					</div>
+
+					{/* Vista mobile: cards */}
+					<div className="md:hidden space-y-3">
+						{transactions.length === 0 ? (
+							<div className="bg-white rounded-xl border border-slate-100 p-8 text-center shadow-sm">
+								<div className="text-slate-300 flex justify-center mb-3">
+									<svg width="40" height="40" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M3 6a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6Zm3-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H6Z"/></svg>
+								</div>
+								<p className="text-slate-400 text-sm">No hay transacciones</p>
+								<Link href="/transactions/new" className="text-sm text-[#0E7C8B] hover:underline font-medium mt-2 inline-block">
+									Agregar tu primera transacción
+								</Link>
+							</div>
+						) : (
+							transactions.map((tx) => (
+								<div key={tx.id} className="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
+									<div className="flex items-center gap-3">
+										<span className={`w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0 ${tx.type === "INCOME" ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
+											{tx.type === "INCOME" ? (
+												<svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21a1 1 0 0 1-1-1V7.83l-4.59 4.58a1 1 0 0 1-1.41-1.41l6.3-6.3a1 1 0 0 1 1.41 0l6.3 6.3a1 1 0 0 1-1.41 1.41L13 7.83V20a1 1 0 0 1-1 1Z"/></svg>
+											) : (
+												<svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v12.17l4.59-4.58a1 1 0 0 1 1.41 1.41l-6.3 6.3a1 1 0 0 1-1.41 0l-6.3-6.3a1 1 0 0 1 1.41-1.41L11 16.17V4a1 1 0 0 1 1-1Z"/></svg>
+											)}
+										</span>
+										<div className="flex-1 min-w-0">
+											<p className="text-sm font-semibold text-slate-900 truncate">{tx.description || "Sin descripción"}</p>
+											<p className="text-xs text-slate-400">{formatLocalDate(tx.transactionDate)}</p>
+										</div>
+										<div className="text-right flex-shrink-0">
+											<p className={`text-base font-bold ${tx.type === "INCOME" ? "text-emerald-600" : "text-red-600"}`}>
+												{tx.type === "INCOME" ? "+" : "-"}${formatCLP(Math.abs(tx.amount))}
+											</p>
+											<span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-md mt-0.5 ${tx.type === "INCOME" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
+												{tx.type === "INCOME" ? tx.incomeSource?.name ?? "Ingreso" : categoryMap[tx.categoryId] ?? "Gasto"}
+											</span>
+										</div>
+									</div>
+									<div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-slate-50">
+										<button onClick={() => setEditTx(tx)} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#0E7C8B] px-3 py-1.5 rounded-lg hover:bg-[#0E7C8B]/10 transition-colors">
+											<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M16.862 3.487a2.5 2.5 0 0 1 3.536 0l.115.115a2.5 2.5 0 0 1 0 3.536L9.06 18.591a1 1 0 0 1-.465.263l-5.5 1.375a1 1 0 0 1-1.213-1.212l1.374-5.5a1 1 0 0 1 .263-.465L16.862 3.487Z"/></svg>
+											Editar
+										</button>
+										<button onClick={() => setDeleteTx(tx)} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors">
+											<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M10 2a2 2 0 0 0-2 2H4a1 1 0 0 0 0 2h1v13a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V6h1a1 1 0 1 0 0-2h-4a2 2 0 0 0-2-2h-4ZM9 6h6v13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V6h2Zm1 3a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Z"/></svg>
+											Eliminar
+										</button>
+									</div>
+								</div>
+							))
+						)}
+					</div>
 
 					{/* Paginación */}
-					<div className="flex items-center justify-between text-sm text-slate-500 mt-4 pt-4 border-t border-slate-100">
-						<span className="font-medium">
+					<div className="flex items-center justify-between text-sm text-slate-500 mt-4 pt-4 border-t border-slate-100 flex-wrap gap-3">
+						<span className="font-medium hidden md:inline">
 							Mostrando <span className="text-slate-900">{startEntry}</span> a <span className="text-slate-900">{endEntry}</span> de <span className="text-slate-900 font-semibold">{totalFiltered}</span> transacciones
+						</span>
+						<span className="font-medium md:hidden text-xs">
+							{startEntry}–{endEntry} de {totalFiltered}
 						</span>
 						<div className="flex items-center gap-2">
 							<button

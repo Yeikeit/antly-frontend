@@ -152,10 +152,10 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between">
           <div>
             <p className="text-sm text-slate-500">Presupuesto activo</p>
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900">
               {MONTHS[budget.month - 1]} {budget.year}
             </h1>
           </div>
@@ -164,22 +164,22 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-3 mb-6">
           {[
             { label: 'Ingresos', value: income, color: 'text-slate-800' },
             { label: 'Asignado', value: allocated, color: 'text-[#0E7C8B]' },
             { label: 'Disponible', value: available, color: available >= 0 ? 'text-emerald-600' : 'text-red-600' },
           ].map((m) => (
-            <div key={m.label} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+            <div key={m.label} className="bg-white rounded-2xl border border-slate-100 p-3 md:p-5 shadow-sm">
               <p className="text-xs text-slate-400 mb-1">{m.label}</p>
-              <p className={`text-xl font-bold ${m.color}`}>
+              <p className={`text-base md:text-xl font-bold ${m.color}`}>
                 ${formatCLP(m.value)}
               </p>
             </div>
           ))}
         </div>
 
-          <div className="flex flex-col md:flex-row gap-6 mb-8 items-stretch">
+          <div className="flex flex-col md:flex-row gap-6 mb-6 items-stretch">
         <div className="flex-1">
           {loadingSummary ? (
             <Loader />
@@ -194,7 +194,7 @@ export default function DashboardPage() {
         </div>
       </div>
       
-        <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm mb-8">
+        <div className="bg-white rounded-2xl border border-slate-100 p-4 md:p-5 shadow-sm mb-6">
           <div className="flex justify-between items-center mb-3">
             <p className="text-sm font-medium text-slate-700">Presupuesto asignado</p>
             <p className="text-sm font-semibold text-[#0E7C8B]">{allocatedPct}%</p>
@@ -211,7 +211,7 @@ export default function DashboardPage() {
         </div>
 
         {!automationOn && (
-          <div className="flex items-center justify-between rounded-2xl border border-dashed border-slate-200 bg-white px-5 py-4 shadow-sm">
+          <div className="flex items-center justify-between rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-3 md:px-5 md:py-4 shadow-sm flex-wrap gap-3">
             <div>
               <p className="text-sm font-semibold text-slate-800">Automatización desactivada</p>
               <p className="text-xs text-slate-500 mt-0.5">Crea el presupuesto del mes siguiente manualmente cuando estés listo.</p>

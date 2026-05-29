@@ -111,22 +111,22 @@ export default function BudgetDetailPage() {
   });
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-6">
+    <div className="max-w-3xl mx-auto px-0">
+      <div className="mb-4">
         <Link href="/budget/history" className="text-sm text-slate-500 hover:text-slate-900">
-          ← Historial de presupuestos
+          ← Historial
         </Link>
       </div>
 
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">
             {MONTHS[summary.month - 1]} {summary.year}
           </h1>
-          <p className="mt-0.5 text-sm text-slate-500">Detalle del presupuesto</p>
+          <p className="mt-0.5 text-xs text-slate-500">Detalle del presupuesto</p>
         </div>
         {isActive && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               Activo
@@ -136,7 +136,7 @@ export default function BudgetDetailPage() {
               onClick={() => router.push(`/budget/${id}/edit/incomes`)}
               className="inline-flex items-center gap-1.5 rounded-full border border-[#0E7C8B] bg-white px-3 py-1 text-xs font-semibold text-[#0E7C8B] hover:bg-teal-50 transition"
             >
-              ✏️ Editar presupuesto
+              ✏️ Editar
             </button>
             <button
               type="button"

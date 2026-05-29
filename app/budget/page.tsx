@@ -193,49 +193,49 @@ export default function BudgetPage() {
   const expenseCategories = parentCategories.filter((a) => a.type !== "SAVING");
   const savingCategories = parentCategories.filter((a) => a.type === "SAVING");
 
-  const totalSaved = savingCategories.reduce((sum, cat) => {
-    return sum + (subByParent[cat.categoryId] ?? []).reduce((s, sub) => s + sub.spent, 0);
-  }, 0);
   const totalSavingAllocated = savingCategories.reduce((sum, cat) => {
     return sum + (subByParent[cat.categoryId] ?? []).reduce((s, sub) => s + sub.allocated, 0);
   }, 0);
-  const savingRate = income > 0 ? Math.round((totalSaved / income) * 100) : 0;
+  const totalSaved = savingCategories.reduce((sum, cat) => {
+    return sum + (subByParent[cat.categoryId] ?? []).reduce((s, sub) => s + sub.spent, 0);
+  }, 0);
+  const savingRate = income > 0 ? Math.round((totalSavingAllocated / income) * 100) : 0;
 
   return (
-    <div className="max-w-5xl mx-auto px-2 py-8 space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="max-w-5xl mx-auto px-2 py-6 md:py-8 space-y-6 md:space-y-8">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">
             {MONTHS[budget.month - 1]} {budget.year}
           </h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100 px-3 py-1 rounded-full">
             Activo
           </span>
           <Link
             href={`/budget/${budget.id}/edit/incomes`}
-            className="flex items-center gap-1.5 border border-[#0E7C8B] text-[#0E7C8B] text-sm font-semibold px-4 py-2 rounded-xl hover:bg-teal-50 transition-colors"
+            className="flex items-center gap-1.5 border border-[#0E7C8B] text-[#0E7C8B] text-xs md:text-sm font-semibold px-3 md:px-4 py-2 rounded-xl hover:bg-teal-50 transition-colors"
           >
             ✏️ Editar
           </Link>
           <button
             type="button"
             onClick={() => { setCloseReason(""); setCloseError(null); setShowCloseModal(true); }}
-            className="flex items-center gap-1.5 border border-red-200 text-red-500 text-sm font-semibold px-4 py-2 rounded-xl hover:bg-red-50 transition-colors"
+            className="flex items-center gap-1.5 border border-red-200 text-red-500 text-xs md:text-sm font-semibold px-3 md:px-4 py-2 rounded-xl hover:bg-red-50 transition-colors"
           >
             🔒 Cerrar mes
           </button>
           <Link
             href="/transactions/new"
-            className="flex items-center gap-2 bg-[#0E7C8B] text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-[#0a6470] transition-colors"
+            className="flex items-center gap-2 bg-[#0E7C8B] text-white text-xs md:text-sm font-semibold px-3 md:px-4 py-2 rounded-xl hover:bg-[#0a6470] transition-colors"
           >
-            <FaPlus size={12} /> Agregar Transacción
+            <FaPlus size={11} /> Agregar
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <BudgetMetricCard label="Ingresos" amount={income} color="slate" />
         <BudgetMetricCard label="Asignado" amount={allocated} color="teal" sub={`${allocatedPct}% del ingreso planificado`} />
         <BudgetMetricCard
@@ -300,11 +300,13 @@ export default function BudgetPage() {
                 <h3 className="text-base font-semibold text-slate-600">Ahorros</h3>
                 <div className="flex items-center gap-3 text-sm">
                   <span className="text-slate-500">
-                    Ahorrado:{" "}
+                    Asignado:{" "}
                     <span className="font-semibold text-emerald-600">
-                      ${formatCLP(totalSaved)}
+                      ${formatCLP(totalSavingAllocated)}
                     </span>
-                    {" "}/ ${formatCLP(totalSavingAllocated)}
+                    {totalSaved > 0 && (
+                      <span className="text-slate-400"> · ejecutado: ${formatCLP(totalSaved)}</span>
+                    )}
                   </span>
                   <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-xs font-semibold px-2.5 py-1 rounded-full">
                     {savingRate}% del ingreso

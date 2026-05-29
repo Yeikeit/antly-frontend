@@ -41,7 +41,7 @@ function ChooserStep({
 }) {
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-8 rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+      <div className="mb-5 rounded-2xl border border-slate-200 bg-white px-4 md:px-6 py-4 md:py-5 shadow-sm">
         <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-400">
           ¿Para qué mes vas a crear tu presupuesto?
         </p>
@@ -57,8 +57,8 @@ function ChooserStep({
         </div>
       )}
 
-      <div className="mb-8 text-center">
-        <h1 className="text-2xl font-semibold text-slate-900">¿Cómo quieres empezar?</h1>
+      <div className="mb-5 text-center">
+        <h1 className="text-xl md:text-2xl font-semibold text-slate-900">¿Cómo quieres empezar?</h1>
         <p className="mt-2 text-sm text-slate-600">
           Puedes copiar la estructura del mes anterior o empezar desde cero.
         </p>

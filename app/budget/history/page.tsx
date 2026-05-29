@@ -68,15 +68,15 @@ function BudgetRow({
     <div className="relative">
       <Link
         href={`/budget/${budget.id}`}
-        className={`group flex items-center gap-4 rounded-2xl border bg-white px-5 py-4 shadow-sm transition hover:shadow-md hover:border-[#0E7C8B]/30 ${
+        className={`group flex items-center gap-3 rounded-2xl border bg-white px-4 py-3 shadow-sm transition hover:shadow-md hover:border-[#0E7C8B]/30 ${
           isActive ? "border-[#0E7C8B]/40 ring-1 ring-[#0E7C8B]/20" : "border-slate-100"
         }`}
       >
-        <div className="w-28 shrink-0">
-          <p className="text-base font-semibold text-slate-900">
+        <div className="w-20 md:w-28 shrink-0">
+          <p className="text-sm md:text-base font-semibold text-slate-900">
             {MONTHS[budget.month - 1]}
           </p>
-          <p className="text-sm text-slate-400">{budget.year}</p>
+          <p className="text-xs text-slate-400">{budget.year}</p>
         </div>
 
         <div className="w-24 shrink-0">
@@ -175,14 +175,14 @@ export default function BudgetHistoryPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-5 flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Historial de presupuestos</h1>
-          <p className="mt-1 text-sm text-slate-500">Todos tus presupuestos ordenados del más reciente al más antiguo.</p>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">Historial</h1>
+          <p className="mt-0.5 text-xs md:text-sm text-slate-500">Tus presupuestos, del más reciente al más antiguo.</p>
         </div>
         <Link
           href="/budget/new"
-          className="rounded-xl bg-[#0E7C8B] px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 transition"
+          className="shrink-0 rounded-xl bg-[#0E7C8B] px-3 md:px-4 py-2 md:py-2.5 text-sm font-semibold text-white hover:bg-teal-700 transition"
         >
           + Nuevo
         </Link>

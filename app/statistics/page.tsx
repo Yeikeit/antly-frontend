@@ -501,7 +501,7 @@ export default function StatisticsPage() {
   const spentPct = allocated > 0 ? Math.round((totalSpent / allocated) * 100) : 0;
 
   return (
-    <div className="max-w-5xl mx-auto px-2 py-8 space-y-6">
+    <div className="max-w-5xl mx-auto px-2 py-6 md:py-8 space-y-5 md:space-y-6">
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
