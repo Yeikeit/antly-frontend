@@ -101,7 +101,7 @@ interface Props {
 export function EditTransactionModal({ transaction, onClose, onSave }: Props) {
   const isIncome = transaction.type === "INCOME";
 
-  const [amountStr, setAmountStr] = useState(String(transaction.amount));
+  const [amountStr, setAmountStr] = useState(String(Math.round(Number(transaction.amount))));
   const [description, setDescription] = useState(transaction.description ?? "");
   const [date, setDate] = useState(toLocalDateString(transaction.transactionDate));
   const [saving, setSaving] = useState(false);
@@ -210,7 +210,7 @@ export function EditTransactionModal({ transaction, onClose, onSave }: Props) {
               <input
                 type="number"
                 min="0"
-                step="0.01"
+                step="1"
                 value={amountStr}
                 onChange={(e) => setAmountStr(e.target.value)}
                 className="flex-1 text-2xl font-bold text-slate-800 bg-transparent outline-none placeholder:text-slate-200"

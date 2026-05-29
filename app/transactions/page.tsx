@@ -8,6 +8,7 @@ import { useCategories } from "@/hooks/category/useCategories";
 import { getIncomeSources, type IncomeSource } from "@/lib/api/incomes";
 import Loader from "@/components/ui/Loader";
 import { EditTransactionModal } from "@/components/transaction/EditTransactionModal";
+import { formatCLP } from "@/lib/utils/currency";
 import { DeleteConfirmModal } from "@/components/transaction/DeleteConfirmModal";
 
 const MONTH_NAMES = [
@@ -173,7 +174,7 @@ export default function TransactionsPage() {
 							<div>
 								<div className="text-xs text-slate-500 font-medium">Ingresos totales</div>
 								<div className="text-xl font-bold text-emerald-600">
-									${budget.totalIncomeAmount.toLocaleString()}
+									${formatCLP(budget.totalIncomeAmount)}
 								</div>
 							</div>
 						</div>
@@ -186,7 +187,7 @@ export default function TransactionsPage() {
 							<div>
 								<div className="text-xs text-slate-500 font-medium">Presupuesto asignado</div>
 								<div className="text-xl font-bold text-red-600">
-									${budget.totalAllocatedAmount.toLocaleString()}
+									${formatCLP(budget.totalAllocatedAmount)}
 								</div>
 							</div>
 						</div>
@@ -199,7 +200,7 @@ export default function TransactionsPage() {
 							<div>
 								<div className="text-xs text-slate-500 font-medium">Sin asignar</div>
 								<div className="text-xl font-bold text-[#0E7C8B]">
-									${(budget.totalIncomeAmount - budget.totalAllocatedAmount).toLocaleString()}
+									${formatCLP(budget.totalIncomeAmount - budget.totalAllocatedAmount)}
 								</div>
 							</div>
 						</div>
@@ -411,7 +412,7 @@ export default function TransactionsPage() {
 										<td className={`p-4 text-right font-bold text-lg ${
 											tx.type === "INCOME" ? "text-emerald-600" : "text-red-600"
 										}`}>
-											{tx.type === "INCOME" ? "+" : "-"}${Math.abs(tx.amount).toLocaleString()}
+											{tx.type === "INCOME" ? "+" : "-"}${formatCLP(Math.abs(tx.amount))}
 										</td>
 										<td className="p-4 text-right">
 											<div className="flex items-center justify-end gap-2">
