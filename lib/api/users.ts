@@ -13,11 +13,11 @@ export interface ChangePasswordDto {
 }
 
 export interface BudgetPreferencesDto {
-  monthlyAutomation: boolean;
+  budgetAutomation: boolean;
 }
 
 export interface BudgetPreferences {
-  monthlyAutomation: boolean;
+  budgetAutomation: boolean;
 }
 
 export function updateProfile(dto: UpdateProfileDto) {
