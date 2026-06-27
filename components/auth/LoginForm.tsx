@@ -27,15 +27,23 @@ export function LoginForm() {
                 placeholder="correo@ejemplo.com"
             />
 
-            <FormInput
-                id="password"
-                name="password"
-                label="Contraseña"
-                type="password"
-                value={values.password}
-                onChange={actions.setPassword}
-                placeholder="••••••••"
-            />
+            <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                    <label htmlFor="password" className="text-sm font-medium text-slate-700">Contraseña</label>
+                    <a href="/forgot-password" className="text-xs text-[#0E7C8B] hover:underline">
+                        ¿Olvidaste tu contraseña?
+                    </a>
+                </div>
+                <FormInput
+                    id="password"
+                    name="password"
+                    label=""
+                    type="password"
+                    value={values.password}
+                    onChange={actions.setPassword}
+                    placeholder="••••••••"
+                />
+            </div>
 
             <FormErrorMessage message={state.error} />
 
