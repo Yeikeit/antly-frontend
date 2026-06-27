@@ -33,3 +33,17 @@ export function logout(refreshToken: string) {
     body: JSON.stringify({ refreshToken }),
   });
 }
+
+export function forgotPassword(email: string) {
+  return apiRequest<void>('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function resetPassword(token: string, newPassword: string) {
+  return apiRequest<void>('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, newPassword }),
+  });
+}

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Solo accesibles sin sesión (o con sesión → dashboard)
-const AUTH_ROUTES = ['/login', '/register'];
+const AUTH_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password'];
 
 // Rutas que requieren sesión activa
 const PROTECTED_PREFIXES = [

@@ -1,7 +1,7 @@
 type FormInputProps = {
     id: string;
     name: string;
-    label: string;
+    label?: string;
     type?: string;
     value: string;
     placeholder?: string;
@@ -21,9 +21,11 @@ export function FormInput({
 }: FormInputProps) {
     return (
         <div className="space-y-1">
-            <label htmlFor={id} className="block text-sm font-medium text-slate-700">
-                {label}
-            </label>
+            {label ? (
+                <label htmlFor={id} className="block text-sm font-medium text-slate-700">
+                    {label}
+                </label>
+            ) : null}
 
             <input
                 id={id}
