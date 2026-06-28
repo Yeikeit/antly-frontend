@@ -1,126 +1,37 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getActiveBudget, getBudgetSummary } from "@/lib/api/budgets";
 import { getCategories, type CategoryTree, type Subcategory, type CategoryType } from "@/lib/api/categories";
 import { createTransaction, type TransactionType } from "@/lib/api/transactions";
 import { getIncomeSources, createIncome, type IncomeSource } from "@/lib/api/incomes";
 import { IncomeSourceSelect } from "@/components/transaction/IncomeSourceSelect";
-import { FaChevronDown, FaCheck } from "react-icons/fa";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 import Link from "next/link";
-
-type Tab = "EXPENSE" | "INCOME";
-
-function toLocalDateString(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-/* ── Custom Select ── */
-type SelectOption = { id: string; label: string };
-
-function CustomSelect({
-  options,
-  value,
-  onChange,
-  placeholder,
-  disabled = false,
-}: {
-  options: SelectOption[];
-  value: string;
-  onChange: (id: string) => void;
-  placeholder: string;
-  disabled?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const selected = options.find((o) => o.id === value);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => !disabled && setOpen((p) => !p)}
-        className={`
-          w-full flex items-center justify-between gap-2 px-4 py-3 rounded-xl border text-sm font-medium
-          transition-all duration-150
-          ${disabled
-            ? "bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed"
-            : open
-              ? "bg-white border-[#0E7C8B] ring-2 ring-[#0E7C8B]/10 text-slate-800 shadow-sm"
-              : "bg-white border-slate-200 text-slate-700 hover:border-[#0E7C8B] hover:shadow-sm"
-          }
-        `}
-      >
-        <span className={selected ? "text-slate-800" : disabled ? "text-slate-300" : "text-slate-400"}>
-          {selected ? selected.label : placeholder}
-        </span>
-        <FaChevronDown
-          size={11}
-          className={`flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180 text-[#0E7C8B]" : disabled ? "text-slate-200" : "text-slate-400"}`}
-        />
-      </button>
-
-      {open && (
-        <div className="absolute z-20 top-full mt-1.5 left-0 right-0 bg-white border border-slate-100 rounded-xl shadow-lg overflow-hidden">
-          <div className="max-h-52 overflow-y-auto py-1">
-            {options.map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => { onChange(opt.id); setOpen(false); }}
-                className={`
-                  w-full flex items-center justify-between px-4 py-2.5 text-sm text-left transition-colors
-                  ${value === opt.id
-                    ? "bg-[#e6f7fa] text-[#0E7C8B] font-semibold"
-                    : "text-slate-700 hover:bg-slate-50"
-                  }
-                `}
-              >
-                {opt.label}
-                {value === opt.id && <FaCheck size={10} className="text-[#0E7C8B]" />}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 /* ── Page ── */
 export default function NewTransactionPage() {
   const router = useRouter();
 
-  const [tab, setTab]                   = useState<Tab>("EXPENSE");
-  const [amountStr, setAmountStr]       = useState("");
-  const [date, setDate]                 = useState(toLocalDateString(new Date()));
-  const [description, setDescription]   = useState("");
-  const [categories, setCategories]     = useState<CategoryTree[]>([]);
+  const [tab, setTab] = useState<Tab>("EXPENSE");
+  const [rawAmount, setRawAmount] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [description, setDescription] = useState("");
+  const [categories, setCategories] = useState<CategoryTree[]>([]);
   const [incomeSources, setIncomeSources] = useState<IncomeSource[]>([]);
-  const [budgetId, setBudgetId]         = useState<string | null>(null);
+  const [budgetId, setBudgetId] = useState<string | null>(null);
   const [selectedCatId, setSelectedCatId] = useState("");
   const [selectedSubId, setSelectedSubId] = useState("");
   const [selectedIncomeSourceId, setSelectedIncomeSourceId] = useState("");
-  const [saving, setSaving]             = useState(false);
-  const [error, setError]               = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getActiveBudget().then(async (b) => {
       if (!b) { router.replace("/settingBudget"); return; }
       setBudgetId(b.id);
 
-      // Load categories and summary in parallel, then filter to only
-      // subcategories that have an allocation in the active budget.
       const [allCats, summary] = await Promise.all([
         getCategories(),
         getBudgetSummary(b.id).catch(() => null),
@@ -153,14 +64,33 @@ export default function NewTransactionPage() {
     }
   }, [incomeSources, selectedIncomeSourceId]);
 
-  const typeMap: Record<Tab, CategoryType> = { EXPENSE: "EXPENSE", INCOME: "INCOME" };
+  const typeMap: Record<Tab, CategoryType> = { EXPENSE: "EXPENSE", INCOME: "INCOME", SAVING: "SAVING" };
   const isIncome = tab === "INCOME";
-  const filteredCats  = categories.filter((c) => c.type === typeMap[tab]);
-  const selectedCat   = filteredCats.find((c) => c.id === selectedCatId) ?? null;
+  const filteredCats = categories.filter((c) => c.type === typeMap[tab]);
+  const selectedCat = filteredCats.find((c) => c.id === selectedCatId) ?? null;
   const subcategories: Subcategory[] = selectedCat?.subcategories ?? [];
 
-  const catOptions = filteredCats.map((c) => ({ id: c.id, label: c.name }));
-  const subOptions = subcategories.map((s) => ({ id: s.id, label: s.name }));
+  const catOptions = filteredCats
+    .map((c) => ({ id: c.id, label: c.name }))
+    .sort((a, b) => a.label.localeCompare(b.label, "es"));
+  const subOptions = subcategories
+    .map((s) => ({ id: s.id, label: s.name }))
+    .sort((a, b) => a.label.localeCompare(b.label, "es"));
+
+  // Si hay una sola categoría (ej: ahorro), fijarla automáticamente
+  useEffect(() => {
+    if (filteredCats.length === 1 && selectedCatId !== filteredCats[0].id) {
+      setSelectedCatId(filteredCats[0].id);
+      setSelectedSubId("");
+    }
+  }, [tab, filteredCats.length]);
+
+  // Si la categoría fijada tiene una sola subcategoría, fijarla también
+  useEffect(() => {
+    if (subcategories.length === 1 && selectedSubId !== subcategories[0].id) {
+      setSelectedSubId(subcategories[0].id);
+    }
+  }, [selectedCatId, subcategories.length]);
 
   function handleTabChange(t: Tab) {
     setTab(t);
@@ -174,7 +104,14 @@ export default function NewTransactionPage() {
     setSelectedSubId("");
   }
 
-  const amount  = parseFloat(amountStr.replace(",", ".")) || 0;
+  const amount = parseInt(rawAmount.replace(/\./g, ""), 10) || 0;
+  const displayAmount = amount > 0 ? amount.toLocaleString("es-CL") : "";
+
+  function handleAmountChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const digits = e.target.value.replace(/\D/g, "");
+    setRawAmount(digits ? parseInt(digits, 10).toLocaleString("es-CL") : "");
+  }
+
   const canSave = amount > 0 && budgetId !== null && (isIncome ? selectedIncomeSourceId !== "" : selectedSubId !== "");
 
   async function handleSave() {
@@ -223,15 +160,14 @@ export default function NewTransactionPage() {
         <div className="p-6">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Tipo</p>
           <div className="inline-flex bg-slate-100 rounded-xl p-1 gap-1">
-            {(["EXPENSE", "INCOME"] as Tab[]).map((t) => (
+            {(["EXPENSE", "INCOME", "SAVING"] as Tab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => handleTabChange(t)}
-                className={`px-8 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  tab === t ? "bg-[#0E7C8B] text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
-                }`}
+                className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${tab === t ? "bg-[#0E7C8B] text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
+                  }`}
               >
-                {t === "EXPENSE" ? "Gasto" : "Ingreso"}
+                {t === "EXPENSE" ? "Gasto" : t === "INCOME" ? "Ingreso" : "Ahorro"}
               </button>
             ))}
           </div>
@@ -243,12 +179,11 @@ export default function NewTransactionPage() {
           <div className="flex items-center gap-3 border border-slate-200 rounded-xl px-5 py-4 focus-within:border-[#0E7C8B] transition-colors">
             <span className="text-2xl font-light text-slate-400">$</span>
             <input
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-              value={amountStr}
-              onChange={(e) => setAmountStr(e.target.value)}
+              type="text"
+              inputMode="numeric"
+              placeholder="0"
+              value={displayAmount}
+              onChange={handleAmountChange}
               className="flex-1 text-3xl font-bold text-slate-800 bg-transparent outline-none placeholder:text-slate-200"
             />
           </div>
@@ -277,6 +212,7 @@ export default function NewTransactionPage() {
                   value={selectedCatId}
                   onChange={handleCatChange}
                   placeholder="Seleccionar..."
+                  searchable
                 />
               </div>
 
@@ -291,6 +227,7 @@ export default function NewTransactionPage() {
                   onChange={setSelectedSubId}
                   placeholder={!selectedCatId ? "Primero elige categoría" : "Seleccionar..."}
                   disabled={!selectedCatId}
+                  searchable
                 />
               </div>
 

@@ -134,7 +134,7 @@ export function EditTransactionModal({ transaction, onClose, onSave }: Props) {
 
   const selectedCat = categories.find((c) => c.id === selectedCatId) ?? null;
   const subcategories = selectedCat?.subcategories ?? [];
-  const catOptions = categories.filter((c) => c.type === "EXPENSE").map((c) => ({ id: c.id, label: c.name }));
+  const catOptions = categories.filter((c) => c.type === transaction.type).map((c) => ({ id: c.id, label: c.name }));
   const subOptions = subcategories.map((s) => ({ id: s.id, label: s.name }));
   const sourceOptions = incomeSources.map((s) => ({ id: s.id, label: s.name }));
 
@@ -181,7 +181,7 @@ export function EditTransactionModal({ transaction, onClose, onSave }: Props) {
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
           <div>
             <h2 className="text-lg font-bold text-slate-900">
-              Editar {isIncome ? "ingreso" : "gasto"}
+              Editar {isIncome ? "ingreso" : transaction.type === "SAVING" ? "ahorro" : "gasto"}
             </h2>
             <p className="text-sm text-slate-500 mt-0.5">
               Modifica los datos de esta transacción

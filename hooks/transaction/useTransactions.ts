@@ -23,7 +23,7 @@ export function useTransactions() {
   const [budget, setBudget] = useState<ActiveBudget | null>(null);
   const [allTransactions, setAllTransactions] = useState<TransactionRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>("EXPENSE");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("ALL");
   // categoryIds: array de IDs a filtrar (subcategorías o fuentes); vacío = sin filtro
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");

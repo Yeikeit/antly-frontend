@@ -235,20 +235,27 @@ export default function BudgetPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className={`grid grid-cols-2 gap-3 ${unallocated > 0 ? "md:grid-cols-5" : "md:grid-cols-4"}`}>
         <BudgetMetricCard label="Ingresos" amount={income} color="slate" />
-        <BudgetMetricCard label="Asignado" amount={allocated} color="teal" sub={`${allocatedPct}% del ingreso planificado`} />
-        <BudgetMetricCard
-          label="Sin asignar"
-          amount={unallocated}
-          color={unallocated > 0 ? "amber" : "emerald"}
-          sub="Ingreso sin presupuestar"
-        />
+        <BudgetMetricCard label="Asignado" amount={allocated} color="teal" sub={`${allocatedPct}% del ingreso`} />
+        {unallocated > 0 && (
+          <BudgetMetricCard
+            label="Sin asignar"
+            amount={unallocated}
+            color="amber"
+            sub="Ingreso sin presupuestar"
+          />
+        )}
         <BudgetMetricCard
           label="Gastado"
           amount={spent}
           color="orange"
-          sub={`Saldo del presupuesto: $${formatCLP(budgetRemaining)}`}
+        />
+        <BudgetMetricCard
+          label="Restante por gastar"
+          amount={budgetRemaining}
+          color={budgetRemaining >= 0 ? "emerald" : "red"}
+          sub={budgetRemaining < 0 ? "Presupuesto excedido" : undefined}
         />
       </div>
 

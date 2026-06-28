@@ -71,7 +71,8 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   let token = getAccessToken();
   let res = await request(path, options, token);
 
-  if (res.status === 401) {
+  const isAuthEndpoint = path.startsWith('/auth/');
+  if (res.status === 401 && !isAuthEndpoint) {
     const newToken = await tryRefresh();
     if (newToken) {
       res = await request(path, options, newToken);
