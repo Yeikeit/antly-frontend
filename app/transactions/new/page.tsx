@@ -10,6 +10,8 @@ import { IncomeSourceSelect } from "@/components/transaction/IncomeSourceSelect"
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import Link from "next/link";
 
+type Tab = "EXPENSE" | "INCOME" | "SAVING";
+
 /* ── Page ── */
 export default function NewTransactionPage() {
   const router = useRouter();
