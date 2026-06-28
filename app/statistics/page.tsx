@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Loader from "@/components/ui/Loader";
 import { formatCLP } from "@/lib/utils/currency";
 import {
@@ -20,7 +20,7 @@ import {
 } from "recharts";
 import { MonthYearPicker } from "@/components/ui/MonthYearPicker";
 import { useStatistics } from "@/hooks/statistics/useStatistics";
-import type { AllocationSummary } from "@/lib/api/budgets";
+import { getBudgetSummary, type AllocationSummary, type BudgetListItem } from "@/lib/api/budgets";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -145,12 +145,7 @@ function ExecutionBars({ allocations }: { allocations: AllocationSummary[] }) {
       return acc;
     }, {});
 
-  const data = Object.values(parents).map((d) => ({
-    name: d.name.length > 14 ? d.name.slice(0, 13) + "…" : d.name,
-    Gastado: d.spent,
-    Presupuesto: d.allocated,
-    over: d.spent > d.allocated,
-  }));
+  const data = Object.values(parents);
 
   if (data.length === 0) {
     return (
@@ -161,57 +156,40 @@ function ExecutionBars({ allocations }: { allocations: AllocationSummary[] }) {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={Math.max(data.length * 52, 160)}>
-      <BarChart
-        layout="vertical"
-        data={data}
-        margin={{ top: 0, right: 16, left: 0, bottom: 0 }}
-        barSize={14}
-        barGap={4}
-      >
-        <CartesianGrid horizontal={false} stroke="#f1f5f9" />
-        <XAxis
-          type="number"
-          tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
-          tick={{ fontSize: 11, fill: "#94a3b8" }}
-          axisLine={false}
-          tickLine={false}
-        />
-        <YAxis
-          type="category"
-          dataKey="name"
-          tick={{ fontSize: 12, fill: "#475569", fontWeight: 500 }}
-          axisLine={false}
-          tickLine={false}
-          width={90}
-        />
-        <Tooltip
-          content={({ active, payload, label }) => (
-            <CurrencyTooltip active={active} payload={payload as never} label={label} />
-          )}
-        />
-        <Bar dataKey="Presupuesto" fill="#e2e8f0" radius={[0, 6, 6, 0]} />
-        <Bar dataKey="Gastado" radius={[0, 6, 6, 0]}>
-          {data.map((d, i) => (
-            <Cell key={i} fill={d.over ? "#ef4444" : "#0E7C8B"} />
-          ))}
-          <LabelList
-            dataKey="Gastado"
-            position="right"
-            content={({ value, index }) => {
-              const item = data[index as number];
-              if (!item) return null;
-              const p = item.Presupuesto > 0 ? Math.round((Number(value) / item.Presupuesto) * 100) : 0;
-              return (
-                <text fontSize={10} fill="#94a3b8">
-                  {`${p}%`}
-                </text>
-              );
-            }}
-          />
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="space-y-4">
+      {data.map((d) => {
+        const pct = d.allocated > 0 ? Math.min((d.spent / d.allocated) * 100, 100) : 0;
+        const isOver = d.spent > d.allocated;
+        const isWarning = pct >= 80 && !isOver;
+        const barColor = isOver ? "bg-red-500" : isWarning ? "bg-amber-400" : "bg-[#0E7C8B]";
+        const textColor = isOver ? "text-red-500" : "text-slate-800";
+        return (
+          <div key={d.name}>
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-sm font-medium text-slate-700">{d.name}</span>
+              <div className="text-right">
+                <span className={`text-sm font-bold ${textColor}`}>${formatCLP(d.spent)}</span>
+                <span className="text-xs text-slate-400"> / ${formatCLP(d.allocated)}</span>
+              </div>
+            </div>
+            <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${barColor} rounded-full transition-all duration-500`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <div className="flex justify-between mt-1">
+              {isOver ? (
+                <p className="text-xs text-red-500 font-medium">Excedido por ${formatCLP(d.spent - d.allocated)}</p>
+              ) : (
+                <p className="text-xs text-slate-400">{Math.round(pct)}% usado</p>
+              )}
+              <p className="text-xs text-slate-400">${formatCLP(d.allocated - d.spent)} restante</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -468,15 +446,60 @@ function SubcategoryBars({ allocations }: { allocations: AllocationSummary[] }) 
   );
 }
 
+// ── 6. Comparación mes a mes ─────────────────────────────────────────────────
+
+
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function StatisticsPage() {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
+  const [exporting, setExporting] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null);
 
-  const { selectedBudget, summary, loadingBudgets, loadingSummary, error } =
+  async function handleExportPDF() {
+    if (!printRef.current) return;
+    setExporting(true);
+    try {
+      const { toPng } = await import("html-to-image");
+      const { default: jsPDF } = await import("jspdf");
+
+      const canvas = await toPng(printRef.current, {
+        backgroundColor: "#f8fafc",
+        pixelRatio: 2,
+      });
+
+      const imgWidth = 210; // A4 mm
+      const pageHeight = 297;
+      const imgProps = { width: printRef.current.offsetWidth, height: printRef.current.offsetHeight };
+      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      let y = 0;
+      while (y < imgHeight) {
+        if (y > 0) pdf.addPage();
+        pdf.addImage(canvas, "PNG", 0, -y, imgWidth, imgHeight);
+        y += pageHeight;
+      }
+
+      pdf.save(`estadisticas-${MONTHS[month - 1].toLowerCase()}-${year}.pdf`);
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  const { allBudgets, selectedBudget, summary, loadingBudgets, loadingSummary, error } =
     useStatistics(month, year);
+
+  // Al cargar, priorizar el presupuesto activo; si no hay, el más reciente
+  useEffect(() => {
+    if (loadingBudgets || allBudgets.length === 0) return;
+    const active = allBudgets.find((b) => b.status === 'ACTIVE');
+    const target = active ?? allBudgets[0];
+    setMonth(target.month);
+    setYear(target.year);
+  }, [allBudgets, loadingBudgets]);
 
   const isCurrentMonth = month === now.getMonth() + 1 && year === now.getFullYear();
   const isLoading = loadingBudgets || loadingSummary;
@@ -501,17 +524,32 @@ export default function StatisticsPage() {
   const spentPct = allocated > 0 ? Math.round((totalSpent / allocated) * 100) : 0;
 
   return (
-    <div className="max-w-5xl mx-auto px-2 py-6 md:py-8 space-y-5 md:space-y-6">
+    <div className="max-w-5xl mx-auto px-2 py-6 md:py-8 space-y-5 md:space-y-6 print:py-4 print:space-y-4">
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <p className="text-sm text-slate-500">Estadísticas</p>
+          <p className="text-sm text-slate-500 print:hidden">Estadísticas</p>
           <h1 className="text-2xl font-bold text-slate-900">
             {MONTHS[month - 1]} {year}
           </h1>
         </div>
-        <MonthYearPicker month={month} year={year} onChange={(m, y) => { setMonth(m); setYear(y); }} />
+        <div className="flex items-center gap-2 print:hidden">
+          {summary && (
+            <button
+              onClick={handleExportPDF}
+              disabled={exporting}
+              className="inline-flex items-center gap-2 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-semibold px-4 py-2 rounded-xl text-sm transition-colors disabled:opacity-60"
+            >
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.586l2.293-2.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L11 13.586V4a1 1 0 0 1 1-1ZM4 19a1 1 0 1 0 0 2h16a1 1 0 1 0 0-2H4Z" />
+              </svg>
+              {exporting ? "Generando…" : "Descargar PDF"}
+            </button>
+          )}
+          <MonthYearPicker month={month} year={year} onChange={(m, y) => { setMonth(m); setYear(y); }} />
+        </div>
+        <div className="hidden print:block text-sm text-slate-400">Antly · Resumen financiero</div>
       </div>
 
       {/* ── Error ───────────────────────────────────────────────────────── */}
@@ -539,7 +577,7 @@ export default function StatisticsPage() {
 
       {/* ── Contenido ───────────────────────────────────────────────────── */}
       {!isLoading && summary && (
-        <>
+        <div ref={printRef} className="space-y-5 md:space-y-6">
           {/* Métricas hero */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
@@ -615,8 +653,7 @@ export default function StatisticsPage() {
           {/* Ejecución por categoría padre */}
           {expenseSubs.length > 0 && (
             <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-              <p className="text-base font-bold text-slate-800 mb-1">Gasto vs presupuesto por categoría</p>
-              <p className="text-xs text-slate-400 mb-5">Gris = presupuestado · Color = gastado · Rojo = excedido</p>
+              <p className="text-base font-bold text-slate-800 mb-5">Gasto vs presupuesto por categoría</p>
               <ExecutionBars allocations={summary.allocations} />
             </div>
           )}
@@ -672,7 +709,7 @@ export default function StatisticsPage() {
               <p className="text-slate-500 text-sm">No hay transacciones registradas para este mes.</p>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

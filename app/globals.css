@@ -26,3 +26,40 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@media print {
+  /* Ocultar sidebar, topbar mobile */
+  header, aside, nav {
+    display: none !important;
+  }
+
+  /* El flex wrapper de AppShell */
+  body > div, .flex.min-h-screen {
+    display: block !important;
+  }
+
+  /* El main ocupa todo el ancho */
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body {
+    background: white !important;
+    color: #0f172a !important;
+  }
+
+  /* Evitar cortes dentro de cards */
+  .rounded-2xl, .rounded-xl {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Forzar colores de fondo e íconos en impresión */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

@@ -50,3 +50,10 @@ export function deleteAccount() {
     method: 'DELETE',
   });
 }
+
+export function sendInvite(email: string) {
+  return apiRequest<void>('/users/me/invite', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
