@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getActiveBudget, closeBudget, reopenBudget, getAllBudgets, type ActiveBudget, type BudgetListItem } from "@/lib/api/budgets";
+import { getActiveBudget, closeBudget, reopenBudget, getAllBudgets, getBudgetHistory, type ActiveBudget, type BudgetListItem, type BudgetChangeLog } from "@/lib/api/budgets";
 import { getBudgetPreferences } from "@/lib/api/users";
 import { useBudgetSummary } from "@/hooks/budget/useBudgetSummary";
 import BudgetMetricCard from "@/components/budget/BudgetMetricCard";
@@ -31,6 +31,12 @@ export default function BudgetPage() {
   const [closing, setClosing] = useState(false);
   const [closeError, setCloseError] = useState<string | null>(null);
   const reasonRef = useRef<HTMLInputElement>(null);
+  const [changeLogs, setChangeLogs] = useState<BudgetChangeLog[]>([]);
+
+  useEffect(() => {
+    if (!budget?.id) return;
+    getBudgetHistory(budget.id).then(setChangeLogs).catch(() => {});
+  }, [budget?.id]);
 
   useEffect(() => {
     getActiveBudget().then(async (b) => {
@@ -305,20 +311,6 @@ export default function BudgetPage() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base font-semibold text-slate-600">Ahorros</h3>
-                <div className="flex items-center gap-3 text-sm">
-                  <span className="text-slate-500">
-                    Asignado:{" "}
-                    <span className="font-semibold text-emerald-600">
-                      ${formatCLP(totalSavingAllocated)}
-                    </span>
-                    {totalSaved > 0 && (
-                      <span className="text-slate-400"> · ejecutado: ${formatCLP(totalSaved)}</span>
-                    )}
-                  </span>
-                  <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-xs font-semibold px-2.5 py-1 rounded-full">
-                    {savingRate}% del ingreso
-                  </span>
-                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {savingCategories.map((cat) => (
@@ -334,6 +326,50 @@ export default function BudgetPage() {
           )}
         </div>
       )}
+      {changeLogs.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-900 mb-4">Historial de cambios</h2>
+          <ul className="space-y-3">
+            {changeLogs.map((log) => {
+              const isStatus = log.changeType === "STATUS_CHANGE";
+              const isRealloc = log.changeType === "REALLOCATION";
+              const time = new Date(log.createdAt).toLocaleString("es-CL", {
+                day: "2-digit", month: "short", year: "numeric",
+                hour: "2-digit", minute: "2-digit",
+              });
+              const statusLabel: Record<string, string> = {
+                ACTIVE: "Activo", CLOSED: "Cerrado", DRAFT: "Borrador",
+              };
+              return (
+                <li key={log.id} className="flex items-start gap-3">
+                  <div className={`mt-0.5 flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs ${isStatus ? "bg-amber-50 text-amber-500" : "bg-teal-50 text-[#0E7C8B]"}`}>
+                    {isStatus ? (
+                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2Zm0 5a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1Zm0 9a1.25 1.25 0 1 1 0-2.5A1.25 1.25 0 0 1 12 16Z" /></svg>
+                    ) : (
+                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path fill="currentColor" d="M16.862 3.487a2.5 2.5 0 0 1 3.536 3.536L9.06 18.362a1 1 0 0 1-.465.263l-5.5 1.375a1 1 0 0 1-1.212-1.212l1.374-5.5a1 1 0 0 1 .263-.465L16.862 3.487Z" /></svg>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-medium text-slate-800">
+                        {isStatus ? "Cambio de estado" : isRealloc ? "Reasignación" : "Actualización"}
+                      </span>
+                      {isStatus && log.oldValue && log.newValue && (
+                        <span className="text-xs text-slate-400">
+                          {statusLabel[log.oldValue] ?? log.oldValue} → {statusLabel[log.newValue] ?? log.newValue}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">{log.reason}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{time}</p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
       {showCloseModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">

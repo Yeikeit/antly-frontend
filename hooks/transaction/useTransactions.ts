@@ -26,6 +26,7 @@ export function useTransactions() {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("ALL");
   // categoryIds: array de IDs a filtrar (subcategorías o fuentes); vacío = sin filtro
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [page, setPage] = useState(1);
 
@@ -76,7 +77,8 @@ export function useTransactions() {
   const filtered = allTransactions.filter((tx) => {
     const matchesType = typeFilter === "ALL" || tx.type === typeFilter;
     const matchesCategory = categoryIds.length === 0 || categoryIds.includes(tx.categoryId);
-    return matchesType && matchesCategory;
+    const matchesSearch = !searchQuery || (tx.description ?? "").toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesType && matchesCategory && matchesSearch;
   });
 
   const sorted = [...filtered].sort((a, b) => {
@@ -94,6 +96,11 @@ export function useTransactions() {
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const start = (page - 1) * PAGE_SIZE;
   const paginated = sorted.slice(start, start + PAGE_SIZE);
+
+  const handleSearchQuery = useCallback((q: string) => {
+    setSearchQuery(q);
+    setPage(1);
+  }, []);
 
   const handleTypeFilter = useCallback((value: TypeFilter) => {
     setTypeFilter(value);
@@ -220,6 +227,8 @@ export function useTransactions() {
     setTypeFilter: handleTypeFilter,
     categoryIds,
     setCategoryIds: handleCategoryIds,
+    searchQuery,
+    setSearchQuery: handleSearchQuery,
     sortOrder,
     setSortOrder: handleSortOrder,
     page,

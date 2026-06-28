@@ -11,6 +11,7 @@ type RecentTransaction = {
   name: string;
   category: string;
   dateLabel: string;
+  createdAt: string;
   amount: string;
   isIncome: boolean;
 };
@@ -76,8 +77,8 @@ export function useRecentTransactions() {
               name: row.name,
               category: row.category,
               dateLabel: getRelativeDateLabel(row.date),
-              amount: `${row.isIncome ? "+" : "-"}$${formatCLP(Math.abs(row.amount))}`,
-
+              createdAt: row.createdAt,
+              amount: `$${formatCLP(Math.abs(row.amount))}`,
               isIncome: row.isIncome,
             }));
 

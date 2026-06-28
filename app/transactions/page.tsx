@@ -12,6 +12,7 @@ import { EditTransactionModal } from "@/components/transaction/EditTransactionMo
 import { formatCLP } from "@/lib/utils/currency";
 import { DeleteConfirmModal } from "@/components/transaction/DeleteConfirmModal";
 import { CustomSelect } from "@/components/ui/CustomSelect";
+import { exportToCSV, exportToExcel } from "@/lib/utils/exportTransactions";
 
 const MONTH_NAMES = [
 	"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -44,6 +45,8 @@ export default function TransactionsPage() {
 		setTypeFilter,
 		categoryIds,
 		setCategoryIds,
+		searchQuery,
+		setSearchQuery,
 		sortOrder,
 		setSortOrder,
 		page,
@@ -63,6 +66,19 @@ export default function TransactionsPage() {
 	const [mounted, setMounted] = useState(false);
 	const [editTx, setEditTx] = useState<TransactionRow | null>(null);
 	const [deleteTx, setDeleteTx] = useState<TransactionRow | null>(null);
+	const [showExportMenu, setShowExportMenu] = useState(false);
+
+	const exportFilename = `transacciones-${budget?.year ?? ""}-${String(budget?.month ?? "").padStart(2, "0")}`;
+
+	function handleExportCSV() {
+		exportToCSV(allTransactions, categoryMap, exportFilename);
+		setShowExportMenu(false);
+	}
+
+	function handleExportExcel() {
+		exportToExcel(allTransactions, categoryMap, exportFilename);
+		setShowExportMenu(false);
+	}
 
 	useEffect(() => { setMounted(true); }, []);
 
@@ -172,15 +188,38 @@ export default function TransactionsPage() {
 							<h1 className="text-2xl md:text-3xl font-bold mb-0.5 text-slate-900">Transacciones</h1>
 							<p className="text-sm text-slate-500">Revisa y gestiona tu actividad financiera.</p>
 						</div>
-						<Link
-							href="/transactions/new"
-							className="inline-flex items-center justify-center gap-2 bg-[#0E7C8B] hover:bg-[#0a6470] text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-colors w-full md:w-auto"
-						>
-							<svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-								<path fill="currentColor" d="M12 4a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2h-6v6a1 1 0 1 1-2 0v-6H5a1 1 0 1 1 0-2h6V5a1 1 0 0 1 1-1Z" />
-							</svg>
-							Nueva transacción
-						</Link>
+						<div className="flex gap-2 w-full md:w-auto">
+							<div className="relative">
+								<button
+									onClick={() => setShowExportMenu((v) => !v)}
+									className="inline-flex items-center gap-2 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-semibold px-4 py-2.5 rounded-xl shadow-sm transition-colors"
+								>
+									<svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+										<path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.586l2.293-2.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 1 1 1.414-1.414L11 13.586V4a1 1 0 0 1 1-1ZM4 19a1 1 0 1 0 0 2h16a1 1 0 1 0 0-2H4Z" />
+									</svg>
+									Exportar
+								</button>
+								{showExportMenu && (
+									<div className="absolute right-0 mt-1 w-40 bg-white border border-slate-200 rounded-xl shadow-lg z-20 overflow-hidden">
+										<button onClick={handleExportCSV} className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+											Descargar CSV
+										</button>
+										<button onClick={handleExportExcel} className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors border-t border-slate-100">
+											Descargar Excel
+										</button>
+									</div>
+								)}
+							</div>
+							<Link
+								href="/transactions/new"
+								className="inline-flex items-center justify-center gap-2 bg-[#0E7C8B] hover:bg-[#0a6470] text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-colors w-full md:w-auto"
+							>
+								<svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+									<path fill="currentColor" d="M12 4a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2h-6v6a1 1 0 1 1-2 0v-6H5a1 1 0 1 1 0-2h6V5a1 1 0 0 1 1-1Z" />
+								</svg>
+								Nueva transacción
+							</Link>
+						</div>
 					</div>
 
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
@@ -341,6 +380,19 @@ export default function TransactionsPage() {
 								)}
 							</>
 						)}
+
+						<div className="relative flex-1 min-w-[180px] max-w-xs">
+							<svg className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" width="15" height="15" fill="none" viewBox="0 0 24 24">
+								<path fill="currentColor" d="M10 2a8 8 0 1 0 4.906 14.32l4.387 4.387a1 1 0 0 0 1.414-1.414l-4.387-4.387A8 8 0 0 0 10 2Zm-6 8a6 6 0 1 1 12 0 6 6 0 0 1-12 0Z" />
+							</svg>
+							<input
+								type="text"
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								placeholder="Buscar por descripción..."
+								className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0E7C8B]/30 focus:border-[#0E7C8B]"
+							/>
+						</div>
 
 						<div className="flex gap-1 ml-auto flex-wrap">
 							{(["ALL", "INCOME", "EXPENSE", "SAVING"] as TypeFilter[]).map((f) => (

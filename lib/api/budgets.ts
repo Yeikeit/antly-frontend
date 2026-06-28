@@ -207,6 +207,19 @@ export async function deleteBudget(budgetId: string): Promise<void> {
   });
 }
 
+export interface BudgetChangeLog {
+  id: string;
+  changeType: "REALLOCATION" | "AMOUNT_UPDATE" | "STATUS_CHANGE";
+  reason: string;
+  oldValue: string | null;
+  newValue: string | null;
+  createdAt: string;
+}
+
+export async function getBudgetHistory(budgetId: string): Promise<BudgetChangeLog[]> {
+  return apiRequest<BudgetChangeLog[]>(`/budgets/${budgetId}/history`);
+}
+
 export async function updateBudgetWizard(
   budgetId: string,
   data: {
