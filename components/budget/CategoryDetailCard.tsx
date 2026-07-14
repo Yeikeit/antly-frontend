@@ -30,6 +30,7 @@ export function CategoryDetailCard({
         <div>
           <input
             className="text-lg font-semibold text-slate-900 outline-none border-b-2 border-transparent focus:border-[#0E7C8B] bg-transparent pb-0.5 w-full max-w-xs"
+            required
             value={category.name}
             onChange={(e) => onCategoryChange("name", e.target.value)}
             placeholder="Nombre de la categoría"

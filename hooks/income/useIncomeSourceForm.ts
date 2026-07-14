@@ -7,12 +7,16 @@ export function useIncomeSourceForm(onSubmit: (s: { name: string; amount: number
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!name || !amount) {
-      setError('Completa ambos campos');
+    if (!name.trim()) {
+      setError('El nombre es obligatorio');
+      return;
+    }
+    if (!amount || Number(amount) <= 0) {
+      setError('El monto debe ser mayor a 0');
       return;
     }
     setError('');
-    onSubmit({ name, amount: Number(amount) });
+    onSubmit({ name: name.trim(), amount: Number(amount) });
     setName('');
     setAmount('');
   }

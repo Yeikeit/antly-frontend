@@ -215,7 +215,7 @@ function SecuritySection() {
             type="password"
             value={newPassword}
             onChange={setNewPassword}
-            placeholder="Mín. 8 caracteres"
+            placeholder="Mín. 8 caracteres, mayúscula, minúscula y número"
           />
           <Field
             label="Confirmar nueva contraseña"
