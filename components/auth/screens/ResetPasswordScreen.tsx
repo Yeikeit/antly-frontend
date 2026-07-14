@@ -40,7 +40,7 @@ export function ResetPasswordScreen() {
             type="password"
             value={newPassword}
             onChange={setNewPassword}
-            placeholder="Mínimo 6 caracteres"
+            placeholder="Mín. 8 caracteres, mayúscula, minúscula y número"
           />
 
           <FormInput

@@ -19,6 +19,7 @@ export function SubcategoryInputCard({ sub, onChange, onRemove }: SubcategoryInp
       </button>
       <label className="mb-1 block text-xs font-medium text-slate-500">Nombre</label>
       <input
+        required
         className="mb-3 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 outline-none focus:border-[#0E7C8B] focus:ring-1 focus:ring-[#0E7C8B]"
         value={sub.name}
         onChange={(e) => onChange("name", e.target.value)}
@@ -30,8 +31,12 @@ export function SubcategoryInputCard({ sub, onChange, onRemove }: SubcategoryInp
         <input
           className="w-full rounded-lg border border-slate-200 py-2 pl-7 pr-3 text-sm text-slate-800 outline-none focus:border-[#0E7C8B] focus:ring-1 focus:ring-[#0E7C8B]"
           type="number"
+          min="0"
           value={sub.budget}
-          onChange={(e) => onChange("budget", e.target.value)}
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v === "" || Number(v) >= 0) onChange("budget", v);
+          }}
           placeholder="0.00"
         />
       </div>
