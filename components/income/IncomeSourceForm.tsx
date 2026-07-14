@@ -24,7 +24,6 @@ export function IncomeSourceForm({ onSubmit, onCancel }: {
         name="incomeAmount"
         label="Monto"
         type="number"
-        min="1"
         value={values.amount}
         onChange={actions.setAmount}
         placeholder="ej: 600000"
